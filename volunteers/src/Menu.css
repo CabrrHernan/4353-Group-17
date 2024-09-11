@@ -1,0 +1,25 @@
+.menu {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f4f4f4; /* Light background color */
+  }
+  
+  .menu h1 {
+    font-size: 30px; 
+    margin-left: 15px; 
+  }
+  menu .logout {
+    margin-right: auto; /* Push 'Log Out' to the right */
+  }
+
+  .menu a {
+    text-decoration: none;
+    color: #333; /* Text color for the links */
+    font-size: 20px;
+  }
+  
+  
+  .menu a:hover {
+    text-decoration: underline; /* Hover effect */
+  }
