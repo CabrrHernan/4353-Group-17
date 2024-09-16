@@ -39,7 +39,7 @@
   .login-form label {
     display: block;
     margin-bottom: 5px;
-    font-size: 16px;
+    font-size: 18px;
     color: #333;
   }
   
@@ -53,16 +53,22 @@
   }
   
   .login-form button {
-    background-color: #007bff;
+    background-color: #333;
     color: white;
     border: none;
     padding: 10px;
-    font-size: 16px;
+    font-size: 18px;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
   }
   
   .login-form button:hover {
-    background-color: #0056b3;
+    background-color: #555;
+  }
+
+  .login-form p {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
   }
