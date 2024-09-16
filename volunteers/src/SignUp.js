@@ -1,26 +1,30 @@
-import './Login.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './SignUp.css';
 
-function Login({setAuthState}) {
+function SignUp() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleSignUp = (e) => {
     e.preventDefault();
     if (username && password) {
+      // Get existing users from localStorage or create an empty array
       let users = JSON.parse(localStorage.getItem('users')) || [];
 
-      const user = users.find(user => user.username === username && user.password === password);
+      // Check if the username already exists
+      const userExists = users.some(user => user.username === username);
 
-      if (user) {
-        const authState = { isLoggedIn: true, username };
-        localStorage.setItem('authState', JSON.stringify(authState));
-        setAuthState(authState);
-        navigate('/');
+      if (userExists) {
+        alert('Username already exists. Please choose another one.');
       } else {
-        alert('Invalid username or password.');
+        // Add new user to the array
+        users.push({ username, password });
+        // Store the updated user array in localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        alert('Account created successfully. You can now log in.');
+        navigate('/login'); // Redirect to login page after sign-up
       }
     } else {
       alert('Please enter both a username and password.');
@@ -28,9 +32,9 @@ function Login({setAuthState}) {
   };
 
   return (
-    <div className="login-container">
-      <h1>Login</h1>
-      <form className="login-form" onSubmit={handleLogin}>
+    <div className="signup-container">
+      <h1>Sign Up</h1>
+      <form className="signup-form" onSubmit={handleSignUp}>
         <div>
           <label>Username:</label>
           <input
@@ -49,11 +53,10 @@ function Login({setAuthState}) {
             required
           />
         </div>
-        <button type="submit">Log In</button>
-        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+        <button type="submit">Sign Up</button>
       </form>
     </div>
   );
 }
 
-export default Login;
+export default SignUp;
