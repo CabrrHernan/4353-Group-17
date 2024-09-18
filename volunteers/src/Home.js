@@ -4,13 +4,13 @@ import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import { useNavigate } from 'react-router-dom';
 
 
-
-export const Menu = () => {
+function Navbar(){
     let user = "Volunteer";
     return ( 
-        <nav className="menu">
+        <nav className="navbar">
             <h1>Welcome, {user}</h1>
             <a href="/">Home</a>
             <a href="/Profile/">Profile</a>
@@ -29,7 +29,7 @@ const messagesData = [
 ];
 
 
-export const Messages = ({ messages = messagesData }) => {
+function Messages({ messages = messagesData }){
     return (
         <ToastContainer className="toast-container">
             {messages.length ===0 ?(
@@ -54,7 +54,7 @@ export const Messages = ({ messages = messagesData }) => {
 
 
 
-export const Widget = ({className,Header,Body}) =>{
+function Widget({className,Header,Body}){
     let buttons;
     if(className === "notifications"){
         buttons =  <ButtonGroup>
@@ -81,10 +81,10 @@ export const Widget = ({className,Header,Body}) =>{
     );
 }
 
-export const Home = () =>{
+function Home(){
     return(
         <div className = "home">
-            <Menu/>
+            <Navbar/>
             <div  className="widget-container">
                 <Widget className = "events" Header = {<h2>Events</h2>} Body = {<p>Null</p>}/>
     
@@ -100,3 +100,4 @@ export const Home = () =>{
         </div>
     );
 }
+export default Home;
