@@ -1,9 +1,10 @@
 import './App.css';
-import Menu from './Menu';
+import {Home} from './Home';
 import Login from './Login';
 import SignUp from './SignUp';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 
 function App() {
   const [authState, setAuthState] = useState({ isLoggedIn: false, username: '' });
