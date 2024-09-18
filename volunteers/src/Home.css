@@ -5,7 +5,8 @@
   width: 100%;
   background-color: lightblue;
 }
-.menu {
+
+.navbar {
   display: flex;
   justify-content: center;
   align-items:center;
@@ -16,26 +17,26 @@
   left: 0; 
 }
   
-.menu h1 {
+.navbar h1 {
   font-size: 30px; 
   margin-left: 15px; 
   padding-right: 20px;
 }
 
 
-.menu a {
+.navbar a {
   text-decoration: none;
-  color: #333; /* Text color for the links */
+  color: #333; 
   font-size: 18;
   padding:20px;
   transition: transform 0.2s ease-in-out;
 }
   
   
-.menu a:hover {
-  text-decoration: underline; /* Hover effect */
+.navbar a:hover {
+  text-decoration: underline; 
   transform: translateY(-5px);
-}
+} 
 
 .widget-container{
   top: 120px;
