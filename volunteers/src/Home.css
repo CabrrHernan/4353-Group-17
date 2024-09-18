@@ -1,0 +1,130 @@
+
+.home {
+  position: absolute;
+  height: 100vh;
+  width: 100%;
+  background-color: lightblue;
+}
+.menu {
+  display: flex;
+  justify-content: center;
+  align-items:center;
+  background-color: #f4f4f4;
+  width: 100vw; 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+}
+  
+.menu h1 {
+  font-size: 30px; 
+  margin-left: 15px; 
+  padding-right: 20px;
+}
+
+
+.menu a {
+  text-decoration: none;
+  color: #333; /* Text color for the links */
+  font-size: 18;
+  padding:20px;
+  transition: transform 0.2s ease-in-out;
+}
+  
+  
+.menu a:hover {
+  text-decoration: underline; /* Hover effect */
+  transform: translateY(-5px);
+}
+
+.widget-container{
+  top: 120px;
+  gap: 20px;
+  position:absolute;
+  display:flex;
+  margin:0 auto;
+  width: 100%; 
+  height: 100%;
+}
+
+.widget {
+  position:relative;
+  display:block;
+  margin:0 auto;
+  height: 75%; /* Set a max height if necessary */
+  width: 30%;
+  background-color: #f9f9f9;
+  padding-top: 0;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease, transform 0.3s ease-in-out; 
+  overflow-y: auto;
+}
+.widget h2{
+  position:relative;
+  top:0;
+  font-size: 25px;
+  text-decoration: underline;
+}
+
+.widget p{
+  position:relative;
+}
+
+.widget:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+  transform: translateY(-5px); /* Slight lift effect */
+}
+
+.toast-container {
+  top:60px;
+  left:0;
+  margin:0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between each toast */
+  width: 25vw;
+  height:auto;
+}
+
+.message-container{
+  width: auto;
+}
+
+.message-container:hover{
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between; /* Align the title and time on opposite sides */
+  border-bottom: 1px solid #e2e2e2;
+  padding: 10px;
+  background-color: bisque;
+}
+
+
+.message-body {
+  height:auto;
+  padding: 10px;
+  background-color: whitesmoke;
+}
+
+.message-title {
+  font-weight: bold;
+}
+
+.message-time {
+  font-size: 12px;
+  color: #888;
+  padding-left: 100px;
+}
+
+.foot{
+  position: absolute;
+  bottom: -75px;
+  width: 100%;
+  color:black;
+  font-size: 16px;
+  margin:0 auto;
+}
