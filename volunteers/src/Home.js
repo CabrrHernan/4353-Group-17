@@ -65,11 +65,10 @@ function Events({events = eventsData}){
     )
 }
 
-
-function Home(){
+function Home({ setAuthState }) {
     return(
         <div className = "home">
-            <Menu/>
+      <Menu setAuthState={setAuthState} />
             <div  className="widget-container">
                 <Events/>
     
