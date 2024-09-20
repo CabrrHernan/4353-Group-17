@@ -1,6 +1,7 @@
 
 import './Home.css';
 import Menu from './Menu';
+import Profile from './Profile';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 import Button from 'react-bootstrap/Button';
@@ -59,44 +60,21 @@ function Events({events = eventsData}){
     return(
         <div className = "widget">
             <h2>Events</h2>
-
+            <p>Null</p>
         </div>
     )
 }
 
-
-function Widget({className,Header,Body}){
-    let buttons;
-    if(className === "events"){
-        buttons =  <ButtonGroup>
-                <Button className = "upcoming" variant="Secondary">Upcoming</Button>
-                <Button className = "pending" variant="Secondary">Pending</Button>
-                <Button className = "past" variant="Secondary">Past</Button>
-            </ButtonGroup>;
-    }
-    else{
-        buttons = null;
-    }
-    return(
-        <div className = "widget" >
-            {Header}
-            {buttons}
-            {Body}
-        </div>
-    );
-}
-
 function Home({ setAuthState }) {
-    
     return(
         <div className = "home">
       <Menu setAuthState={setAuthState} />
             <div  className="widget-container">
-                <Widget className = "events" Header = {<h2>Events</h2>} Body = {<p>Null</p>}/>
+                <Events/>
     
                 <Messages/>
 
-                <Widget className = "profile-view" Header = {<h2>Profile</h2>} Body = {<p>User info</p>}/>
+                <Profile/>
             </div>
             <footer className ="foot">
                 <p>
