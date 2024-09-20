@@ -1,13 +1,18 @@
 .menu {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #f4f4f4; /* Light background color */
+    justify-content: center;
+    align-items:center;
+    background-color: #f4f4f4;
+    width: 100vw; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
   }
   
   .menu h1 {
     font-size: 30px; 
     margin-left: 15px; 
+    padding-right: 20px;
   }
   menu .logout {
     margin-right: auto; /* Push 'Log Out' to the right */
@@ -15,11 +20,14 @@
 
   .menu a {
     text-decoration: none;
-    color: #333; /* Text color for the links */
-    font-size: 20px;
+    color: #333; 
+    font-size: 18;
+    padding:20px;
+    transition: transform 0.2s ease-in-out;
   }
   
   
   .menu a:hover {
-    text-decoration: underline; /* Hover effect */
+    text-decoration: underline; 
+    transform: translateY(-5px);
   }

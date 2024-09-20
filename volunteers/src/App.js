@@ -1,6 +1,8 @@
 import './App.css';
 import Home from './Home';
 import Menu from './Menu';
+import EventManagementFrom from './Forms pages/EventManagementForm';
+import VolunteerMatchingForm from './Forms pages/VolunteerMatchingForm';
 import Login from './Login';
 import SignUp from './SignUp';
 import { useState, useEffect } from 'react';
@@ -27,11 +29,11 @@ function App() {
         {authState.isLoggedIn && <Menu setAuthState={setAuthState} />}
         <Routes>
           <Route path="/" element={<Home/>} />
-          <Route path="/Profile" element={authState.isLoggedIn ? <h1>Profile</h1> : <Navigate to="/login" />} />
-          <Route path="/Events" element={authState.isLoggedIn ? <h1>Events</h1> : <Navigate to="/login" />} />
+          <Route path="/Volunteers" element={<VolunteerMatchingForm/>} />
+          <Route path="/Events" element={<EventManagementFrom/>} />
           <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
           <Route path="/login" element={!authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/signup" element={<SignUp/>} />
         </Routes>
       </div>
     </Router>

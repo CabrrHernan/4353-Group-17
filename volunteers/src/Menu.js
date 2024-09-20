@@ -12,9 +12,9 @@ const Menu = ({ setAuthState }) => {
 
   return (
     <nav className="menu">
-      <h1>Volunteers</h1>
+      <h1>Welcome, Volunteer</h1>
       <a onClick={() => navigate('/')}>Home</a>
-      <a onClick={() => navigate('/Profile')}>Profile</a>
+      <a onClick={() => navigate('/Volunteers')}>Volunteers</a>
       <a onClick={() => navigate('/Events')}>Events</a>
       <a onClick={() => navigate('/Notifications')}>Notifications</a>
       <a onClick={handleLogout}>Log Out</a>
