@@ -86,11 +86,11 @@ function Widget({className,Header,Body}){
     );
 }
 
-function Home(){
+function Home({ setAuthState }) {
     
     return(
         <div className = "home">
-            <Menu/>
+      <Menu setAuthState={setAuthState} />
             <div  className="widget-container">
                 <Widget className = "events" Header = {<h2>Events</h2>} Body = {<p>Null</p>}/>
     
