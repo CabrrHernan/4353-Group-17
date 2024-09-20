@@ -31,6 +31,8 @@ function App() {
           <Route path="/Events" element={authState.isLoggedIn ? <h1>Events</h1> : <Navigate to="/login" />} />
           <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
           <Route path="/login" element={!authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
+          <Route path="/Volunteer Matching Form" element={authState.isLoggedIn ? <h1>Matching </h1> : <Navigate to="/login" />} />
+          <Route path="/Event Managemnt Form" element={authState.isLoggedIn ? <h1>Event Managemnt </h1> : <Navigate to="/login" />} />
           <Route path="/signup" element={<SignUp />} />
         </Routes>
       </div>
