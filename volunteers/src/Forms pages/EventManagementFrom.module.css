@@ -1,0 +1,71 @@
+/* EventManagementFrom.module.css */
+
+.eventManagementForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    margin-top: 50px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+  }
+  
+  .eventManagementForm h1 {
+    font-size: 1.6em;
+    color: #333;
+  }
+  
+  .eventManagementForm form {
+    width: 100%;
+  }
+  
+  .eventManagementForm label {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    display: block;
+    color: #555;
+  }
+  
+  .eventManagementForm input[type="text"],
+  .eventManagementForm input[type="date"],
+  .eventManagementForm textarea,
+  .eventManagementForm select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+  }
+  
+  .eventManagementForm textarea {
+    height: 100px;
+    resize: vertical;
+  }
+  
+  .eventManagementForm select[multiple] {
+    height: auto;
+  }
+  
+  .eventManagementForm button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  
+  .eventManagementForm button:hover {
+    background-color: #0056b3;
+  }
+  
