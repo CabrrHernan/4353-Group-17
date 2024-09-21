@@ -16,9 +16,6 @@ const Menu = ({ setAuthState }) => {
       <a onClick={() => navigate('/')}>Home</a>
       <a onClick={() => navigate('/Volunteers')}>Volunteers</a>
       <a onClick={() => navigate('/Events')}>Events</a>
-      <a onClick={() => navigate('/Notifications')}>Notifications</a>
-      <a onClick={() => navigate('/Volunteer Matching Form')}>Matching</a>
-      <a onClick={() => navigate('/Event Managemnt Form')}>Event Managemnt</a>
       <a onClick={handleLogout}>Log Out</a>
     </nav>
   );
