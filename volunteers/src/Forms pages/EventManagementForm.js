@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from './EventManagementFrom.module.css';
 import { useNavigate } from 'react-router-dom';
 
-function EventManagementFrom() {
+function EventManagementForm() {
   // Form state
   const [form, setForm] = useState({
     eventName: '',
@@ -124,4 +124,4 @@ function EventManagementFrom() {
   );
 }
 
-export default EventManagementFrom;
+export default EventManagementForm;
