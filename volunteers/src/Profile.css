@@ -8,15 +8,11 @@
   .profile {
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding-bottom: 20px;
     background-color: #f9f9f9;
     border-radius: 8px;
   }
   
-  .profile h2 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
   
   .profile form {
     display: flex;
@@ -55,4 +51,34 @@
   
   .profile button:hover {
     background-color: #0056b3;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 10px; /* Adjust scrollbar width */
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #000; /* Dark background for the track */
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #8a2be2, #00ffff); /* Initial gradient colors */
+    background-size: 100% 200%; /* Ensure the gradient covers more area */
+    border-radius: 10px;
+  }
+  
+  
+  /* Add a hover effect for the scrollbar */
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #00ffff, #8a2be2); /* Reverse colors on hover */
+    background-size: 100% 200%; /* Ensure gradient covers full thumb height */
+    box-shadow:
+      0 0 20px rgba(138, 43, 226, 0.9), /* Stronger purple glow */
+      0 0 30px rgba(0, 255, 255, 0.9);  /* Stronger cyan glow */
+  }
+  
+  /* Scrollbar Corner */
+  ::-webkit-scrollbar-corner {
+    background: #000; /* Same dark background */
   }
