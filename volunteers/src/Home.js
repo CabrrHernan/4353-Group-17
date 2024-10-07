@@ -8,25 +8,27 @@ import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import {format} from 'date-fns'; 
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-
-const messagesData = [
-    { id: 1, title: 'Message 1', time: 'just now', content: 'Message content 1' , read: 0},
-    { id: 2, title: 'Message 2', time: '2 minutes ago', content: 'Message content 2', read: 1},
-    { id: 3, title: 'Message 3', time: '5 minutes ago', content: 'Message content 3', read: 1 },
-    { id: 4, title: 'Message 4', time: '10 minutes ago', content: 'Message content 4', read: 0 }
-];
-
-const eventsData = [
-    {id: 1, title: 'Event 1', date: new Date(2024, 9, 19, 12, 30), content: 'Event 1 Description', status: 'accepted'},
-    {id: 2, title: 'Event 2', date: new Date(2024, 10, 20, 12, 30), content: 'Event 2 Description', status: 'accepted'},
-    {id: 3, title: 'Event 3', date: new Date(2025, 2, 18, 8), content: 'Event 3 Description', status: 'pending'},
-    {id: 4, title: 'Event 4', date: new Date(2024, 8, 2, 16, 45), content: 'Event 4 Description', status: 'accepted'},
-];
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 
 
-function Messages({ messages = messagesData}){
+
+
+
+function Messages(){
+    const [messages, setMessages] = useState([]);
+    useEffect(()=>{
+        axios.get('/api/messages')
+      .then(response => {
+        setMessages(response.data);
+      })
+      .catch(error => {
+        console.error('There was an error fetching the events!', error);
+      });
+    },[]);
+    
+
     const [filter, setFilter] = useState(0); 
     const filterMessages = messages.filter(message => message.read === filter);
     if(filterMessages.length === 0 && filter === 0){
@@ -65,7 +67,19 @@ function Messages({ messages = messagesData}){
     );
 };
 
-function Events({events = eventsData}){
+function Events(){
+    
+    const [events, setEvents] = useState([]);
+    useEffect(() =>{
+        axios.get('/api/events')
+      .then(response => {
+        setEvents(response.data);
+      })
+      .catch(error => {
+        console.error('There was an error fetching the events!', error);
+      });
+  }, []);
+
     const [filter, setFilter] = useState('accepted'); 
     const getStatus = (eventDate, originalStatus) => {
         const currentDate = new Date();

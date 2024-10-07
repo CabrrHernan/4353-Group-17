@@ -18,16 +18,16 @@
     margin-right: auto; /* Push 'Log Out' to the right */
   }
 
-  .menu a {
+  .menu-item {
     text-decoration: none;
     color: #333; 
-    font-size: 18;
+    font-size: 16px;
     padding:20px;
     transition: transform 0.2s ease-in-out;
   }
   
   
-  .menu a:hover {
+  .menu-item:hover {
     text-decoration: underline; 
     transform: translateY(-5px);
   }

@@ -32,11 +32,57 @@
   overflow-y: auto;
 }
 
-.widget h2{
-  position:relative;
-  top:0;
-  font-size: 25px;
-  text-decoration: underline;
+@keyframes pulse {
+  0% {
+    text-shadow:
+      1px 1px 2px #8a2be2, 
+      0 0 10px #8a2be2,    
+      0 0 20px #8a2be2,    
+      0 0 30px #00ffff,  
+      0 0 40px #00ffff,   
+      0 0 50px #00ffff,    
+      0 0 60px #00ffff;    
+  }
+  50% {
+    text-shadow:
+      1px 1px 4px #8a2be2, 
+      0 0 15px #8a2be2,    
+      0 0 30px #8a2be2,    
+      0 0 45px #00ffff,    
+      0 0 60px #00ffff,    
+      0 0 80px #00ffff,    
+      0 0 100px #00ffff;   
+  }
+  100% {
+    text-shadow:
+      1px 1px 2px #8a2be2, 
+      0 0 10px #8a2be2,
+      0 0 20px #8a2be2,
+      0 0 30px #00ffff,
+      0 0 40px #00ffff,
+      0 0 50px #00ffff,
+      0 0 70px #00ffff;
+  }
+}
+
+.widget h2 {
+  color: #fff;
+  font-size: 26px;
+  font-weight: bold;
+  position: relative;
+  
+  /* Initial neon effect */
+  text-shadow:
+    1px 1px 2px #8a2be2, 
+    0 0 10px #8a2be2,   
+    0 0 20px #8a2be2,
+    0 0 30px #00ffff,    
+    0 0 40px #00ffff,
+    0 0 50px #00ffff,
+    0 0 70px #00ffff;
+
+  /* Animation for pulsing effect */
+  animation: pulse 2s infinite alternate;
 }
 
 .widget p{

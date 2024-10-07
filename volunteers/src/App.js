@@ -10,7 +10,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 
 function App() {
-  const [authState, setAuthState] = useState({ isLoggedIn: false, username: '' });
+  const [authState, setAuthState] = useState({ isLoggedIn: true, username: '' });
 
   useEffect(() => {
     const storedAuthState = localStorage.getItem('authState');
