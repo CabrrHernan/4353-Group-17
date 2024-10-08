@@ -11,6 +11,15 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+// Explicitly setting Axios to use the xhr adapter for browser environments.
+const instance = axios.create({
+  adapter: axios.defaults.adapter,
+});
+
+
+
+
+
 
 
 
