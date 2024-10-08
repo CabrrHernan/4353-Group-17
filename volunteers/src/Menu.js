@@ -12,12 +12,17 @@ const Menu = ({ setAuthState }) => {
 
   return (
     <nav className="menu">
-      <h1>Volunteers</h1>
-      <a onClick={() => navigate('/')}>Home</a>
-      <a onClick={() => navigate('/Profile')}>Profile</a>
-      <a onClick={() => navigate('/Events')}>Events</a>
-      <a onClick={() => navigate('/Notifications')}>Notifications</a>
-      <a onClick={handleLogout}>Log Out</a>
+      <h1>Welcome, Volunteer</h1>
+
+      <h2 className ="menu-item" onClick={() => navigate('/')}>Home</h2>
+      <h2 className ="menu-item" onClick={() => navigate('/Volunteers')}>Volunteers</h2>
+      <h2 className ="menu-item" onClick={() => navigate('/Events')}>Events</h2>
+      <h2 className ="menu-item" onClick={() => navigate('/Notifications')}>Notifications</h2>
+      <h2 className ="menu-item" onClick={() => navigate('/Volunteer Matching Form')}>Matching</h2>
+      <h2 className ="menu-item" onClick={() => navigate('/Event Management Form')}>Event Management</h2>
+      <h2 className ="menu-item" onClick={handleLogout}>Log Out</h2>
+
+
     </nav>
   );
 };

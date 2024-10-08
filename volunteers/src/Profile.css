@@ -1,0 +1,84 @@
+.widget img{
+    border-radius: 50%;
+    height: 150px;
+    width: 150px;
+  }
+
+
+  .profile {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  
+  .profile form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .profile label {
+    font-weight: bold;
+    margin: 10px 0 5px;
+  }
+  
+  .profile input,
+  .profile textarea,
+  .profile select {
+    padding: 8px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+  
+  .profile ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .profile button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .profile button:hover {
+    background-color: #0056b3;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 10px; /* Adjust scrollbar width */
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #000; /* Dark background for the track */
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #8a2be2, #00ffff); /* Initial gradient colors */
+    background-size: 100% 200%; /* Ensure the gradient covers more area */
+    border-radius: 10px;
+  }
+  
+  
+  /* Add a hover effect for the scrollbar */
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #00ffff, #8a2be2); /* Reverse colors on hover */
+    background-size: 100% 200%; /* Ensure gradient covers full thumb height */
+    box-shadow:
+      0 0 20px rgba(138, 43, 226, 0.9), /* Stronger purple glow */
+      0 0 30px rgba(0, 255, 255, 0.9);  /* Stronger cyan glow */
+  }
+  
+  /* Scrollbar Corner */
+  ::-webkit-scrollbar-corner {
+    background: #000; /* Same dark background */
+  }

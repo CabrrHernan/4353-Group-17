@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import './EventManagementFrom.css';
+import styles from './EventManagementFrom.module.css';
+import { useNavigate } from 'react-router-dom';
 
-function EventManagementFrom() {
+function EventManagementForm() {
   // Form state
   const [form, setForm] = useState({
     eventName: '',
@@ -30,7 +31,7 @@ function EventManagementFrom() {
   };
 
   return (
-    <div className="App">
+    <div className={styles.eventManagementForm}>
       <h1>Event Management Form</h1>
       <form onSubmit={handleSubmit}>
         {/* Event Name */}
@@ -123,4 +124,4 @@ function EventManagementFrom() {
   );
 }
 
-export default EventManagementFrom;
+export default EventManagementForm;

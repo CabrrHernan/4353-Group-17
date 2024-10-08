@@ -1,96 +1,147 @@
 
 import './Home.css';
+import Menu from './Menu';
+import Profile from './Profile';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import {format} from 'date-fns'; 
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 
-function Navbar(){
-    let user = "Volunteer";
-    return ( 
-        <nav className="navbar">
-            <h1>Welcome, {user}</h1>
-            <a href="/">Home</a>
-            <a href="/Profile/">Profile</a>
-            <a href="/Events/">Events</a>
-            <a href="/Notifications/">Notifications</a>
-            <a href="/logout">Log Out</a>
-        </nav>
-     );
-}
-
-const messagesData = [
-    { id: 1, title: 'Message 1', time: 'just now', content: 'Message content 1' },
-    { id: 2, title: 'Message 2', time: '2 minutes ago', content: 'Message content 2' },
-    { id: 3, title: 'Message 3', time: '5 minutes ago', content: 'Message content 3' },
-    { id: 4, title: 'Message 4', time: '10 minutes ago', content: 'Message content 4' }
-];
 
 
-function Messages({ messages = messagesData }){
+
+
+function Messages(){
+    const [messages, setMessages] = useState([]);
+    useEffect(()=>{
+        axios.get('/api/messages')
+      .then(response => {
+        setMessages(response.data);
+      })
+      .catch(error => {
+        console.error('There was an error fetching the events!', error);
+      });
+    },[]);
+    
+
+    const [filter, setFilter] = useState(0); 
+    const filterMessages = messages.filter(message => message.read === filter);
+    if(filterMessages.length === 0 && filter === 0){
+        return(<p>No new messages</p>);
+    }
+    else if(filterMessages.length === 1 && filter === 1){
+        return(<p>No old messages</p>);
+    }
     return (
-        <ToastContainer className="toast-container">
-            {messages.length ===0 ?(
-                <p>No new messages</p>
-            ):(
-            messages.map((msg) => (
-                <Toast className = "message-container"key={msg.id}>
-                    <Toast.Header className="message-header">
-                        <strong className="message-title">{msg.title}</strong>
-                        <small className="message-time">{msg.time}</small>
-                    </Toast.Header>
-                    <Toast.Body className="message-body">
-                        {msg.content}
-                    </Toast.Body>
-                </Toast>
-                ))
-            )}
-        </ToastContainer>
+        <div className = "widget">
+            <h2>Notifications</h2>
+            <div className = "filter-buttons">
+                <Button  className={filter === 0 ? 'active' : ''}  variant="Secondary"
+                    onClick={() => setFilter(0)}
+                >New</Button>
+                <Button className={filter === 1 ? 'active' : ''}  variant="Secondary"
+                    onClick={() => setFilter(1)}
+                >Old</Button>
+            </div>
+            <ToastContainer className="toast-container">
+                {
+                filterMessages.map((msg) => (
+                    <Toast className = "message-container"key={msg.id}>
+                        <Toast.Header className="message-header">
+                            <strong className="message-title">{msg.title}</strong>
+                            <small className="message-time">{msg.time}</small>
+                        </Toast.Header>
+                        <Toast.Body className="message-body">
+                            {msg.content}
+                        </Toast.Body>
+                    </Toast>
+                    ))
+                }
+            </ToastContainer>
+        </div> 
     );
-}
+};
 
+function Events(){
+    
+    const [events, setEvents] = useState([]);
+    useEffect(() =>{
+        axios.get('/api/events')
+      .then(response => {
+        setEvents(response.data);
+      })
+      .catch(error => {
+        console.error('There was an error fetching the events!', error);
+      });
+  }, []);
 
-
-
-function Widget({className,Header,Body}){
-    let buttons;
-    if(className === "notifications"){
-        buttons =  <ButtonGroup>
-                <Button variant="Secondary">New</Button>
-                <Button variant="Secondary">Old</Button>
-            </ButtonGroup>;
-    }
-    else if(className === "events"){
-        buttons =  <ButtonGroup>
-                <Button variant="Secondary">Upcoming</Button>
-                <Button variant="Secondary">Pending</Button>
-                <Button variant="Secondary">Past</Button>
-            </ButtonGroup>;
-    }
-    else{
-        buttons = null;
-    }
+    const [filter, setFilter] = useState('accepted'); 
+    const getStatus = (eventDate, originalStatus) => {
+        const currentDate = new Date();
+        console.log(eventDate);
+        return eventDate < currentDate ? 'passed' : originalStatus;
+      };
+      const filteredEvents = events.filter(event => getStatus(new Date(event.date), event.status) === filter);
     return(
-        <div className = "widget" >
-            {Header}
-            {buttons}
-            {Body}
+        <div className = "widget">
+            <h2>Events</h2>
+            <div className="filter-buttons">
+                <button 
+                className={filter === 'accepted' ? 'active' : ''} 
+                onClick={() => setFilter('accepted')}
+                >
+                Accepted
+                </button>
+                <button 
+                className={filter === 'pending' ? 'active' : ''} 
+                onClick={() => setFilter('pending')}
+                >
+                Pending
+                </button>
+                <button 
+                className={filter === 'passed' ? 'active' : ''} 
+                onClick={() => setFilter('passed')}
+                >
+                Passed
+                </button>
+            </div>
+        {filteredEvents.length === 0 ? (
+            <p>No {filter} events.</p>
+        ) : (
+        <ul className="events-list">
+          {filteredEvents.map((event) => (
+            <li key={event.id} className="event-item">
+              <h3 className="event-title">{event.title}</h3>
+              <p className="event-date">
+                {format(event.date,'MMMM d yyyy')}
+              </p>
+              <p className="event-content">{event.content}</p>
+              <span className={`event-status ${getStatus(new Date(event.date), event.status)}`}>
+                {getStatus(new Date(event.date), event.status)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
         </div>
-    );
+    )
 }
 
-function Home(){
+function Home({ setAuthState }) {
     return(
         <div className = "home">
-            <Navbar/>
+      <Menu setAuthState={setAuthState} />
             <div  className="widget-container">
-                <Widget className = "events" Header = {<h2>Events</h2>} Body = {<p>Null</p>}/>
+                <Events/>
     
-                <Widget className = "notifications" Header = {<h2>Notifications</h2>} Body = {<Messages/>}/>
+                <Messages/>
 
-                <Widget className = "profile-view" Header = {<h2>Profile</h2>} Body = {<p>User info</p>}/>
+                <Profile/>
             </div>
             <footer className ="foot">
                 <p>

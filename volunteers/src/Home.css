@@ -3,46 +3,16 @@
   position: absolute;
   height: 100vh;
   width: 100%;
-  background-color: lightblue;
+  background-color: darkviolet;
 }
 
-.navbar {
-  display: flex;
-  justify-content: center;
-  align-items:center;
-  background-color: #f4f4f4;
-  width: 100vw; 
-  position: absolute; 
-  top: 0; 
-  left: 0; 
-}
-  
-.navbar h1 {
-  font-size: 30px; 
-  margin-left: 15px; 
-  padding-right: 20px;
-}
-
-
-.navbar a {
-  text-decoration: none;
-  color: #333; 
-  font-size: 18;
-  padding:20px;
-  transition: transform 0.2s ease-in-out;
-}
-  
-  
-.navbar a:hover {
-  text-decoration: underline; 
-  transform: translateY(-5px);
-} 
 
 .widget-container{
   top: 120px;
   gap: 20px;
   position:absolute;
   display:flex;
+  flex-wrap: wrap;
   margin:0 auto;
   width: 100%; 
   height: 100%;
@@ -50,10 +20,11 @@
 
 .widget {
   position:relative;
-  display:block;
+  display:flex;
+  flex-direction: column;
   margin:0 auto;
-  height: 75%; /* Set a max height if necessary */
-  width: 30%;
+  height: 75%; 
+  min-width: 30%;
   background-color: #f9f9f9;
   padding-top: 0;
   border-radius: 20px;
@@ -61,11 +32,58 @@
   transition: box-shadow 0.3s ease, transform 0.3s ease-in-out; 
   overflow-y: auto;
 }
-.widget h2{
-  position:relative;
-  top:0;
-  font-size: 25px;
-  text-decoration: underline;
+
+@keyframes pulse {
+  0% {
+    text-shadow:
+      1px 1px 2px #8a2be2, 
+      0 0 10px #8a2be2,    
+      0 0 20px #8a2be2,    
+      0 0 30px #00ffff,  
+      0 0 40px #00ffff,   
+      0 0 50px #00ffff,    
+      0 0 60px #00ffff;    
+  }
+  50% {
+    text-shadow:
+      1px 1px 4px #8a2be2, 
+      0 0 15px #8a2be2,    
+      0 0 30px #8a2be2,    
+      0 0 45px #00ffff,    
+      0 0 60px #00ffff,    
+      0 0 80px #00ffff,    
+      0 0 100px #00ffff;   
+  }
+  100% {
+    text-shadow:
+      1px 1px 2px #8a2be2, 
+      0 0 10px #8a2be2,
+      0 0 20px #8a2be2,
+      0 0 30px #00ffff,
+      0 0 40px #00ffff,
+      0 0 50px #00ffff,
+      0 0 70px #00ffff;
+  }
+}
+
+.widget h2 {
+  color: #fff;
+  font-size: 26px;
+  font-weight: bold;
+  position: relative;
+  
+  /* Initial neon effect */
+  text-shadow:
+    1px 1px 2px #8a2be2, 
+    0 0 10px #8a2be2,   
+    0 0 20px #8a2be2,
+    0 0 30px #00ffff,    
+    0 0 40px #00ffff,
+    0 0 50px #00ffff,
+    0 0 70px #00ffff;
+
+  /* Animation for pulsing effect */
+  animation: pulse 2s infinite alternate;
 }
 
 .widget p{
@@ -78,8 +96,8 @@
 }
 
 .toast-container {
-  top:60px;
-  left:0;
+  position: relative;
+
   margin:0 auto;
   display: flex;
   flex-direction: column;
@@ -129,3 +147,95 @@
   font-size: 16px;
   margin:0 auto;
 }
+
+.widget ul{
+  display: inline;
+  
+}
+
+
+.events-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.event-item {
+  background-color: #ffffff;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.event-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.event-title {
+  font-size: 18px;
+  margin: 0 0 5px;
+  color: #333;
+}
+
+.event-date {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.event-content {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.event-status {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+
+.event-status.accepted {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.event-status.pending {
+  background-color: #ffc107;
+  color: #fff;
+}
+
+.event-status.passed {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.filter-buttons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.filter-buttons button {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  margin-right: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.filter-buttons button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.filter-buttons button:hover {
+  background-color: #007bff;
+  color: white;
+}
+
