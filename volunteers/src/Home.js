@@ -5,7 +5,6 @@ import Profile from './Profile';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 import Button from 'react-bootstrap/Button';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import {format} from 'date-fns'; 
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -24,7 +23,7 @@ function Messages(){
         setMessages(response.data);
       })
       .catch(error => {
-        console.error('There was an error fetching the events!', error);
+        console.error('There was an error fetching messages', error);
       });
     },[]);
     
