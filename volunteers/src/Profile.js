@@ -1,27 +1,77 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Profile.css';
 import default_image from './default_profilepic.png';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import DatePicker, { DateObject } from 'react-multi-date-picker';
+import 'react-multi-date-picker/styles/layouts/prime.css';
 import {format} from 'date-fns'; 
+import axios from 'axios';
 
 
 
 const Profile = () =>{
     const [isEditing, setIsEditing] = useState(false);
     const [userProfile, setUserProfile] = useState({
-        pic: default_image,
-        userName: 'Default',
-        fullName: 'Afro Man',
-        email:'yahoo@gmail.com',
-        address1: '4455 University Drive',
-        city: 'Houston',
-        state: 'TX',
-        zip: '77204',
-        skills: ['run','swim'],
-        preferences: 'None',
-        availability: [Date('09-20-2024')],
+      pic: default_image,
+      userName: "name",
+      fullName: 'Afro Man',
+      email:'yahoo@gmail.com',
+      address1: '4455 University Drive',
+      city: 'Houston',
+      state: 'TX',
+      zip: '77204',
+      skills: ['run','swim'],
+      preferences: 'None',
+      availability: [],
+    },[]);
+
+      useEffect(()=>{
+        axios.get('/api/get_profile')
+      .then(response => {
+          let profile = response.data;
+          setUserProfile(response.data);
+        })
+      .catch(error => {
+        console.error('There was an error fetching profile data', error);
       });
+    },[]);
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setUserProfile({...userProfile,[name]: value });
+    };
+
+    const handleMultiSelectChange = (e) => {
+      const selectedOptions = [...e.target.selectedOptions].map(option => option.value);
+      setUserProfile({ ...userProfile, skills : selectedOptions });
+    };
+
+
+    const changeDate = (vals) =>{
+
+      setUserProfile({userProfile, availability : vals});
+    }
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try{
+        const response = await fetch('/api/update_profile',{
+          method:'POST',
+          headers:{
+            'Content-Type': 'application/json',
+          },
+          body:JSON.stringify(userProfile),
+        });
+        if(response.ok){
+          const result = await response.json();
+        }
+        else{
+          console.error("Error updating Profile");
+        }
+      }
+      catch(error){
+        console.error('Error', error);
+      }
+    };
 
     const states = ['TX', 'CA', 'NY', 'FL'];
     const skillsOptions = ['run','jump','climb','swim'];
@@ -30,10 +80,10 @@ const Profile = () =>{
             <div className='profile'>
                 <h2>Profile</h2>
                 <div className="profile-picture">
-                    <img src={userProfile.pic} />
+                    <img src={ default_image} />
                 </div>
 
-            <form className={isEditing ? 'editing' : 'viewing'}>
+            <form className={isEditing ? 'editing' : 'viewing'} onSubmit={handleSubmit}>
     
                 <label>User Name</label>
                 <input
@@ -41,6 +91,7 @@ const Profile = () =>{
                 name="userName"
                 maxLength="50"
                 value={userProfile.userName}
+                onChange={handleChange}
                 disabled={!isEditing}
                 />
 
@@ -50,6 +101,7 @@ const Profile = () =>{
                 name="fullName"
                 maxLength="50"
                 value={userProfile.fullName}
+                onChange={handleChange}
                 disabled={!isEditing}
                 />
 
@@ -59,6 +111,7 @@ const Profile = () =>{
                 name="email"
                 maxLength="50"
                 value={userProfile.email}
+                onChange={handleChange}
                 disabled={!isEditing}
                 />
         
@@ -68,6 +121,7 @@ const Profile = () =>{
                 name="address1"
                 maxLength="100"
                 value={userProfile.address1}
+                onChange={handleChange}
                 disabled={!isEditing}
                 />
         
@@ -78,11 +132,12 @@ const Profile = () =>{
                 name="city"
                 maxLength="100"
                 value={userProfile.city}
+                onChange={handleChange}
                 disabled={!isEditing}
                 />
         
                 <label>State</label>
-                <select name="state" value={userProfile.state} disabled={!isEditing}>
+                <select name="state" value={userProfile.state} onChange={handleChange} disabled={!isEditing}>
                 {states.map((state, index) => (
                     <option key={index} value={state}>
                     {state}
@@ -97,11 +152,12 @@ const Profile = () =>{
                 maxLength="9"
                 minLength="5"
                 value={userProfile.zip}
+                onChange={handleChange}
                 disabled={!isEditing}
                 />
 
                 <label>Skills</label>
-                <select name="skills" multiple value={userProfile.skills} disabled={!isEditing}>
+                <select name="skills" multiple value={userProfile.skills} onChange = {handleMultiSelectChange} disabled={!isEditing}>
                 {skillsOptions.map((skill, index) => (
                     <option key={index} value={skill}>
                     {skill}
@@ -110,14 +166,15 @@ const Profile = () =>{
                 </select>
         
                 <label>Preferences</label>
-                <textarea name="preferences" value={userProfile.preferences} disabled={!isEditing} />
+                <textarea name="preferences" value={userProfile.preferences} onChange={handleChange} disabled={!isEditing} />
         
                 <label>Availability</label>
         {isEditing ? (
           <DatePicker
+            name = "availability"
             multiple
-            inline
-            isMultiSelect
+            value = {userProfile.availability}
+            onChange = {changeDate}
           />
         ) : (
           <ul>
@@ -126,10 +183,11 @@ const Profile = () =>{
             ))}
           </ul>
         )}
+                {isEditing ? 
+                  <button type="submit" onSubmit={handleSubmit} onClick={() => setIsEditing(!isEditing)}>Save</button> :
+                  <button type="button" onClick={() => setIsEditing(!isEditing)}>Edit</button>
 
-                <button type="button" onClick={() => setIsEditing(!isEditing)}>
-                {isEditing ? 'Save' : 'Edit'}
-                </button>
+                }
             </form>
           </div>
         </div>

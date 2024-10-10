@@ -1,6 +1,5 @@
-from flask import Flask, jsonify
+from flask import Flask, request,jsonify
 from flask_cors import CORS
-
 app = Flask(__name__)
 CORS(app)
 
@@ -23,6 +22,29 @@ def get_messages():
         { 'id': 4, 'title': 'Message 4', 'time': '10 minutes ago', 'content': 'Message content 4', 'read': 0 }
     ]
     return jsonify(messages)
+
+@app.route('/api/get_profile', methods = ['GET'])
+def get_profile():
+    profile = {
+        'pic': 'NA',
+        'userName': 'Default',
+        'fullName': 'Johnny Bravo',
+        'email':'yahoo@gmail.com',
+        'address': '4455 University Drive',
+        'city': 'Houston',
+        'state': 'TX',
+        'zip': '77204',
+        'skills': ['run','swim'],
+        'preferences': 'None',
+        'availability': [],
+    }
+    return jsonify(profile)
+
+@app.route('/api/update_profile', methods= ['POST'])
+def update_profile():
+    profile = request.get_json()
+    print(profile)
+    return jsonify({"message":"Success"})
 
 if __name__ == '__main__':
     app.run(debug=True)
