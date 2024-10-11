@@ -7,20 +7,31 @@ function Login({setAuthState}) {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (username && password) {
-      let users = JSON.parse(localStorage.getItem('users')) || [];
+      try {
+        const response = await fetch('http://localhost:5000/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
 
-      const user = users.find(user => user.username === username && user.password === password);
+        const data = await response.json();
 
-      if (user) {
-        const authState = { isLoggedIn: true, username };
-        localStorage.setItem('authState', JSON.stringify(authState));
-        setAuthState(authState);
-        navigate('/');
-      } else {
-        alert('Invalid username or password.');
+        if (response.ok) {
+          const { token } = data;
+          localStorage.setItem('authToken', token);
+          setAuthState({ isLoggedIn: true, username });
+          navigate('/');
+        } else {
+          alert(data.message || 'Invalid username or password.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Something went wrong. Please try again.');
       }
     } else {
       alert('Please enter both a username and password.');

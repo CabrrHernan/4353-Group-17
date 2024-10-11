@@ -1,7 +1,55 @@
 from flask import Flask, request,jsonify
 from flask_cors import CORS
+import bcrypt
+import jwt
+from datetime import datetime, timedelta
 app = Flask(__name__)
 CORS(app)
+
+
+users = {}
+
+SECRET_KEY = 'your_secret_key'
+
+
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if username in users:
+        return jsonify({"message": "Username already exists"}), 400
+
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    users[username] = {
+        'email': email,
+        'password': hashed_password
+    }
+    
+    return jsonify({"message": "User created successfully"}), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if username not in users:
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    stored_password = users[username]['password']
+    if not bcrypt.checkpw(password.encode('utf-8'), stored_password):
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    token = jwt.encode({
+        'username': username,
+        'exp': datetime.utcnow() + timedelta(hours=1)
+    }, SECRET_KEY, algorithm='HS256')
+
+    return jsonify({"message": "Login successful", "token": token})
 
 @app.route('/api/events', methods= ['GET'])
 def get_events():
