@@ -8,13 +8,9 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "ansi-html": "^0.0.9",
-<<<<<<< HEAD
     "assert": "^2.1.0",
     "axios": "^1.7.7",
     "browserify-zlib": "^0.2.0",
-=======
-    "axios": "^1.7.7",
->>>>>>> 793a5d5734b44095dba7f4ef840fc927c31bae43
     "date-fns": "^4.1.0",
     "express": "^4.20.0",
     "https-browserify": "^1.0.0",

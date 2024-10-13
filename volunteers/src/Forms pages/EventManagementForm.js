@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './EventManagementFrom.module.css';
+import styles from './EventManagementForm.module.css';
 import { useNavigate } from 'react-router-dom';
 
 function EventManagementForm() {
@@ -12,6 +12,9 @@ function EventManagementForm() {
     urgency: '',
     eventDate: ''
   });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   // Handler for form inputs
   const handleChange = (e) => {
@@ -24,16 +27,38 @@ function EventManagementForm() {
     setForm({ ...form, requiredSkills: selectedOptions });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form data:', form);
-    // Further actions like form validation and API calls go here
-  };
+    try {
+        const response = await fetch('http://localhost:5000/api/events', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(form),
+        });
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Event created:', data);
+            // Optionally reset the form or redirect the user
+        } else {
+            const errorData = await response.json();
+            console.error('Error:', errorData);
+        }
+    } catch (error) {
+        console.error('Network error:', error);
+    }
+};
+
 
   return (
     <div className={styles.eventManagementForm}>
       <h1>Event Management Form</h1>
       <form onSubmit={handleSubmit}>
+        {/* Error message */}
+        {error && <div className={styles.error}>{error}</div>}
+        {success && <div className={styles.success}>{success}</div>}
+
         {/* Event Name */}
         <label>
           Event Name:
@@ -84,6 +109,8 @@ function EventManagementForm() {
           >
             <option value="Communication">Communication</option>
             <option value="Project Management">Project Management</option>
+            <option value="Technical Skills">Technical Skills</option>
+            <option value="Leadership">Leadership</option>
           </select>
         </label>
         <br />
@@ -113,6 +140,7 @@ function EventManagementForm() {
             name="eventDate"
             value={form.eventDate}
             onChange={handleChange}
+            required
           />
         </label>
         <br />

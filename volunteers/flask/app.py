@@ -11,6 +11,15 @@ users = {}
 
 SECRET_KEY = 'your_secret_key'
 
+events = [
+    {'id': 1, 'title': 'Hackathon', 'date': '2024-09-19', 'content': 'Hackathon Event', 'status': 'accepted', 'requiredSkill': 'Programming'},
+    {'id': 2, 'title': 'Fundraising Campaign', 'date': '2024-10-20', 'content': 'Fundraising Campaign', 'status': 'accepted', 'requiredSkill': 'Project Management'}
+]
+volunteers = [
+    {'id': 1, 'name': 'John Doe', 'profile': 'Programming'},
+    {'id': 2, 'name': 'Jane Smith', 'profile': 'Project Management'}
+]
+
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -71,6 +80,21 @@ def get_messages():
     ]
     return jsonify(messages)
 
+@app.route('/api/events', methods=['POST'])
+def create_event():
+    data = request.get_json()
+    event_id = len(events) + 1  # Simple way to generate an ID
+    new_event = {
+        'id': event_id,
+        'title': data['title'],
+        'date': data['date'],
+        'content': data['content'],
+        'status': data['status'],
+        'requiredSkill': data['requiredSkill']  # Add skill requirement
+    }
+    events.append(new_event)
+    return jsonify(new_event), 201
+    
 @app.route('/api/get_profile', methods = ['GET'])
 def get_profile():
     profile = {
@@ -93,6 +117,24 @@ def update_profile():
     profile = request.get_json()
     print(profile)
     return jsonify({"message":"Success"})
+
+@app.route('/api/match', methods=['POST'])
+def match_volunteer():
+    data = request.get_json()
+    volunteer_id = data.get('volunteer_id')
+    manual_event_id = data.get('manual_event_id')
+
+    volunteer = next((v for v in volunteers if v['id'] == volunteer_id), None)
+    matched_event = None
+
+    if volunteer and not manual_event_id:
+        matched_event = next((e for e in events if e['requiredSkill'] == volunteer['profile']), None)
+    elif manual_event_id:
+        matched_event = next((e for e in events if e['id'] == manual_event_id), None)
+
+    if volunteer and matched_event:
+        return jsonify({'volunteer': volunteer, 'event': matched_event}), 200
+    return jsonify({"message": "No match found"}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

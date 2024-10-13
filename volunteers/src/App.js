@@ -5,10 +5,6 @@ import EventManagementFrom from './Forms pages/EventManagementForm';
 import VolunteerMatchingForm from './Forms pages/VolunteerMatchingForm';
 import Login from './Login';
 import SignUp from './SignUp';
-<<<<<<< HEAD
-
-=======
->>>>>>> 793a5d5734b44095dba7f4ef840fc927c31bae43
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
