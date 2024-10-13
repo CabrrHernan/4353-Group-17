@@ -7,24 +7,29 @@ function SignUp() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     if (username && password) {
-      // Get existing users from localStorage or create an empty array
-      let users = JSON.parse(localStorage.getItem('users')) || [];
+      try {
+        const response = await fetch('http://localhost:5000/api/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
 
-      // Check if the username already exists
-      const userExists = users.some(user => user.username === username);
+        const data = await response.json();
 
-      if (userExists) {
-        alert('Username already exists. Please choose another one.');
-      } else {
-        // Add new user to the array
-        users.push({ username, password });
-        // Store the updated user array in localStorage
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('Account created successfully. You can now log in.');
-        navigate('/login'); // Redirect to login page after sign-up
+        if (response.ok) {
+          alert('Account created successfully. You can now log in.');
+          navigate('/login');
+        } else {
+          alert(data.message || 'Error occurred. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Something went wrong. Please try again.');
       }
     } else {
       alert('Please enter both a username and password.');
