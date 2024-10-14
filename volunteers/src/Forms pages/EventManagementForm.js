@@ -16,19 +16,27 @@ function EventManagementForm() {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-  // Handler for form inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm(prevForm => ({ ...prevForm, [name]: value }));
   };
-
+  
   const handleMultiSelectChange = (e) => {
     const selectedOptions = [...e.target.selectedOptions].map(option => option.value);
-    setForm({ ...form, requiredSkills: selectedOptions });
+    setForm(prevForm => ({ ...prevForm, requiredSkills: selectedOptions }));
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); // Reset error before submit
+    setSuccess(''); // Reset success message before submit
+
+    // Validation: Check if required fields are filled
+    if (!form.eventName || !form.eventDescription || !form.location || form.requiredSkills.length === 0 || !form.urgency || !form.eventDate) {
+        setError('Please fill in all fields'); // Set error message if validation fails
+        return; // Stop the submission process
+    }
+
     try {
         const response = await fetch('http://localhost:5000/api/events', {
             method: 'POST',
@@ -37,18 +45,28 @@ function EventManagementForm() {
             },
             body: JSON.stringify(form),
         });
+
         if (response.ok) {
             const data = await response.json();
-            console.log('Event created:', data);
-            // Optionally reset the form or redirect the user
+            setSuccess('Event created successfully!');
+            setForm({
+                eventName: '',
+                eventDescription: '',
+                location: '',
+                requiredSkills: [],
+                urgency: '',
+                eventDate: ''
+            });
         } else {
             const errorData = await response.json();
-            console.error('Error:', errorData);
+            setError(errorData.message || 'Failed to create event');
         }
     } catch (error) {
-        console.error('Network error:', error);
+        setError('Network error: Could not connect to server');
     }
 };
+
+  
 
 
   return (

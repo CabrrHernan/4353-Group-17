@@ -80,20 +80,39 @@ def get_messages():
     ]
     return jsonify(messages)
 
+
 @app.route('/api/events', methods=['POST'])
 def create_event():
     data = request.get_json()
-    event_id = len(events) + 1  # Simple way to generate an ID
+
+    # Validating required fields
+    if not data.get('title') or len(data['title']) > 100:
+        return jsonify({"message": "Title is required and must be less than 100 characters"}), 400
+
+    if not data.get('date'):
+        return jsonify({"message": "Date is required"}), 400
+
+    if not data.get('content') or len(data['content']) > 500:
+        return jsonify({"message": "Content is required and must be less than 500 characters"}), 400
+
+    if not data.get('status') or data['status'] not in ['accepted', 'pending', 'passed']:
+        return jsonify({"message": "Status is required and must be 'accepted', 'pending', or 'passed'"}), 400
+
+    if not data.get('requiredSkill'):
+        return jsonify({"message": "Required skill is mandatory"}), 400
+
+    event_id = len(events) + 1
     new_event = {
         'id': event_id,
         'title': data['title'],
         'date': data['date'],
         'content': data['content'],
         'status': data['status'],
-        'requiredSkill': data['requiredSkill']  # Add skill requirement
+        'requiredSkill': data['requiredSkill']
     }
     events.append(new_event)
     return jsonify(new_event), 201
+
     
 @app.route('/api/get_profile', methods = ['GET'])
 def get_profile():

@@ -6,6 +6,8 @@ function VolunteerMatchingForm() {
   const [matchedEvent, setMatchedEvent] = useState(null);
   const [manualEvent, setManualEvent] = useState('');
   const [events, setEvents] = useState([]);
+  const [error, setError] = useState(''); // Add error state
+  const [success, setSuccess] = useState(''); // Add success state
 
   useEffect(() => {
     const fetchVolunteer = async () => {
@@ -36,8 +38,14 @@ function VolunteerMatchingForm() {
       }),
     });
 
-    const matchData = await response.json();
-    setMatchedEvent(matchData.event);
+    if (response.ok) {
+      const matchData = await response.json();
+      setMatchedEvent(matchData.event);
+      setSuccess('Volunteer matched successfully!'); // Set success message
+    } else {
+      const errorData = await response.json();
+      setError(errorData.message || 'Failed to match volunteer'); // Set error message
+    }
   };
 
   const handleManualEventChange = (e) => {
@@ -46,7 +54,10 @@ function VolunteerMatchingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await matchEvent();
+    setError(''); // Reset error before submission
+    setMatchedEvent(null); // Reset matched event
+
+    await matchEvent(); // Call matchEvent function
   };
 
   return (
@@ -63,7 +74,7 @@ function VolunteerMatchingForm() {
         {/* Matched Event (Auto-filled based on profile) */}
         <label>
           Matched Event:
-          <input type="text" value={matchedEvent ? matchedEvent.name : 'No match found'} readOnly />
+          <input type="text" value={matchedEvent ? matchedEvent.title : 'No match found'} readOnly />
         </label>
         <br />
 
@@ -80,6 +91,12 @@ function VolunteerMatchingForm() {
           </select>
         </label>
         <br />
+
+        {/* Error message */}
+        {error && <div className={styles.error}>{error}</div>}
+
+        {/* Success message */}
+        {success && <div className={styles.success}>{success}</div>}
 
         {/* Submit Button */}
         <button type="submit">Submit Match</button>
