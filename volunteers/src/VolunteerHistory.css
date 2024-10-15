@@ -1,19 +1,107 @@
 .volunteer-history {
-    width: 100%;
-    margin: 0 auto;
+    width: 80%;
+    margin: 20px auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 20px;
+}
+
+.volunteer-history h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+    margin-top: 50px; /* Add some space above the title */
+    padding-top: 10px; /* Extra padding to avoid the top cut-off */
 }
 
 .volunteer-history table {
     width: 100%;
     border-collapse: collapse;
+    margin: 0 auto;
 }
 
-.volunteer-history th, .volunteer-history td {
-    border: 1px solid #ddd;
-    padding: 8px;
+.volunteer-history th, 
+.volunteer-history td {
+    padding: 12px 15px;
+    text-align: left;
 }
 
 .volunteer-history th {
-    background-color: #f2f2f2;
+    background-color: #4CAF50;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.volunteer-history td {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.volunteer-history tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.volunteer-history tr:hover {
+    background-color: #f1f1f1;
+    transition: background-color 0.3s ease;
+}
+
+.volunteer-history th, 
+.volunteer-history td {
     text-align: left;
+    padding: 15px;
+    font-size: 1rem;
+    font-family: 'Arial', sans-serif;
+}
+
+.volunteer-history tr td:first-child {
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.volunteer-history .status {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.volunteer-history .status.accepted {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.volunteer-history .status.pending {
+    background-color: #FFA500;
+    color: white;
+}
+
+.volunteer-history .status.passed {
+    background-color: #808080;
+    color: white;
+}
+
+.volunteer-history tr:last-child td {
+    border-bottom: none;
+}
+
+.volunteer-history .center {
+    text-align: center;
+}
+
+.volunteer-history .action-btn {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.volunteer-history .action-btn:hover {
+    background-color: #45a049;
+    transition: background-color 0.3s ease;
 }
