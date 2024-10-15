@@ -13,8 +13,8 @@
     font-size: 2rem;
     color: #333;
     margin-bottom: 20px;
-    margin-top: 50px; /* Add some space above the title */
-    padding-top: 10px; /* Extra padding to avoid the top cut-off */
+    margin-top: 50px; 
+    padding-top: 10px; 
 }
 
 .volunteer-history table {
