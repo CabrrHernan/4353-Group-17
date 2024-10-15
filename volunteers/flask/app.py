@@ -11,6 +11,9 @@ users = {}
 
 SECRET_KEY = 'your_secret_key'
 
+@app.route('/')
+def home():
+    return "Welcome to the API"
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
