@@ -3,9 +3,10 @@ import Home from './Home';
 import Menu from './Menu';
 import EventManagementForm from './Forms pages/EventManagementForm';
 import VolunteerMatchingForm from './Forms pages/VolunteerMatchingForm';
+import VolunteerHistory from './VolunteerHistory';
 import Login from './Login';
 import SignUp from './SignUp';
-import Profile from './Profile'; // Import Profile component
+import Profile from './Profile'; 
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
@@ -50,7 +51,8 @@ function AppContent({ authState, setAuthState }) {
         <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
         <Route path="/login" element={!authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> {/* Profile route */}
+        <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> 
+        <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );
