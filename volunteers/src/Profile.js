@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Profile.css';
 import default_image from './default_profilepic.png';
 import DatePicker, { DateObject } from 'react-multi-date-picker';
@@ -22,18 +22,19 @@ const Profile = () =>{
       skills: ['run','swim'],
       preferences: 'None',
       availability: [],
-    },[]);
+    });    
 
-      useEffect(()=>{
-        axios.get('/api/get_profile')
-      .then(response => {
-          let profile = response.data;
+    useEffect(() => {
+      axios.get('/api/get_profile')
+        .then(response => {
+          console.log(response.data);  // Check if valid data is returned
           setUserProfile(response.data);
         })
-      .catch(error => {
-        console.error('There was an error fetching profile data', error);
-      });
-    },[]);
+        .catch(error => {
+          console.error('There was an error fetching profile data', error);
+        });
+    }, []);
+    
 
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -45,11 +46,10 @@ const Profile = () =>{
       setUserProfile({ ...userProfile, skills : selectedOptions });
     };
 
-
-    const changeDate = (vals) =>{
-
-      setUserProfile({userProfile, availability : vals});
-    }
+    const changeDate = (vals) => {
+      setUserProfile({ ...userProfile, availability: vals });
+    };
+    
 
     const handleSubmit = async (e) => {
       e.preventDefault();
