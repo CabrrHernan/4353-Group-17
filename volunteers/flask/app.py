@@ -11,12 +11,15 @@ users = {}
 
 SECRET_KEY = 'your_secret_key'
 
-messages= [
-        { 'id': 1, 'title': 'Message 1', 'time': 'just now', 'content': 'Message content 1' , 'read': 0},
-        { 'id': 2, 'title': 'Message 2', 'time': '2 minutes ago', 'content': 'Message content 2', 'read': 1},
-        { 'id': 3, 'title': 'Message 3', 'time': '5 minutes ago', 'content': 'Message content 3', 'read': 1 },
-        { 'id': 4, 'title': 'Message 4', 'time': '10 minutes ago', 'content': 'Message content 4', 'read': 0 }
-    ]
+events = [
+    {'id': 1, 'title': 'Hackathon', 'date': '2024-09-19', 'content': 'Hackathon Event', 'status': 'accepted', 'requiredSkill': 'Programming'},
+    {'id': 2, 'title': 'Fundraising Campaign', 'date': '2024-10-20', 'content': 'Fundraising Campaign', 'status': 'accepted', 'requiredSkill': 'Project Management'}
+]
+volunteers = [
+    {'id': 1, 'name': 'John Doe', 'profile': 'Programming'},
+    {'id': 2, 'name': 'Jane Smith', 'profile': 'Project Management'}
+]
+
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -71,13 +74,40 @@ def get_events():
 def get_messages():
     return jsonify(messages)
 
-@app.route('/api/read_message', methods = ['POST'])
-def read_message():
-    id = request.get_json()
-    print(id)
-    return(jsonify({"message":"Success"}))
 
+@app.route('/api/events', methods=['POST'])
+def create_event():
+    data = request.get_json()
 
+    # Validating required fields
+    if not data.get('title') or len(data['title']) > 100:
+        return jsonify({"message": "Title is required and must be less than 100 characters"}), 400
+
+    if not data.get('date'):
+        return jsonify({"message": "Date is required"}), 400
+
+    if not data.get('content') or len(data['content']) > 500:
+        return jsonify({"message": "Content is required and must be less than 500 characters"}), 400
+
+    if not data.get('status') or data['status'] not in ['accepted', 'pending', 'passed']:
+        return jsonify({"message": "Status is required and must be 'accepted', 'pending', or 'passed'"}), 400
+
+    if not data.get('requiredSkill'):
+        return jsonify({"message": "Required skill is mandatory"}), 400
+
+    event_id = len(events) + 1
+    new_event = {
+        'id': event_id,
+        'title': data['title'],
+        'date': data['date'],
+        'content': data['content'],
+        'status': data['status'],
+        'requiredSkill': data['requiredSkill']
+    }
+    events.append(new_event)
+    return jsonify(new_event), 201
+
+    
 @app.route('/api/get_profile', methods = ['GET'])
 def get_profile():
     profile = {
@@ -100,6 +130,24 @@ def update_profile():
     profile = request.get_json()
     print(profile)
     return jsonify({"message":"Success"})
+
+@app.route('/api/match', methods=['POST'])
+def match_volunteer():
+    data = request.get_json()
+    volunteer_id = data.get('volunteer_id')
+    manual_event_id = data.get('manual_event_id')
+
+    volunteer = next((v for v in volunteers if v['id'] == volunteer_id), None)
+    matched_event = None
+
+    if volunteer and not manual_event_id:
+        matched_event = next((e for e in events if e['requiredSkill'] == volunteer['profile']), None)
+    elif manual_event_id:
+        matched_event = next((e for e in events if e['id'] == manual_event_id), None)
+
+    if volunteer and matched_event:
+        return jsonify({'volunteer': volunteer, 'event': matched_event}), 200
+    return jsonify({"message": "No match found"}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
