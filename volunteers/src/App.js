@@ -53,6 +53,7 @@ function AppContent({ authState, setAuthState }) {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> 
         <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
+        <Route path="/VolunteerHistory" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );
