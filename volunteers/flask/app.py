@@ -97,5 +97,15 @@ def update_profile():
     print(profile)
     return jsonify({"message":"Success"})
 
+@app.route('/api/volunteer_history', methods=['GET'])
+def get_volunteer_history():
+    volunteer_history = [
+        {'date': '2023-05-10', 'eventName': 'Event Helper', 'role': 'Helper', 'hours': 4, 'status': 'Completed'},
+        {'date': '2023-07-22', 'eventName': 'Fundraiser', 'role': 'Fundraiser', 'hours': 6, 'status': 'Completed'},
+        {'date': '2023-08-14', 'eventName': 'Social Media Coordinator', 'role': 'Coordinator', 'hours': 3, 'status': 'Completed'}
+    ]
+    return jsonify(volunteer_history)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
