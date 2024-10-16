@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './Profile.css';
 import default_image from './default_profilepic.png';
-import DatePicker, { DateObject } from 'react-multi-date-picker';
+import DatePicker from 'react-multi-date-picker';
 import 'react-multi-date-picker/styles/layouts/prime.css';
 import {format} from 'date-fns'; 
 import axios from 'axios';
@@ -27,7 +27,6 @@ const Profile = () =>{
       useEffect(()=>{
         axios.get('/api/get_profile')
       .then(response => {
-          let profile = response.data;
           setUserProfile(response.data);
         })
       .catch(error => {
@@ -35,41 +34,45 @@ const Profile = () =>{
       });
     },[]);
 
-    const handleChange = (e) => {
+    const handleChange = (e) =>{
+      console.log(e);
       const { name, value } = e.target;
-      setUserProfile({...userProfile,[name]: value });
+      setUserProfile((prevState) =>({
+        ...prevState,
+        [name]: value || ""}));
     };
 
     const handleMultiSelectChange = (e) => {
-      const selectedOptions = [...e.target.selectedOptions].map(option => option.value);
-      setUserProfile({ ...userProfile, skills : selectedOptions });
+      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+      setUserProfile((prevState) => ({
+        ...prevState,
+        skills: selectedOptions,
+      }));
     };
 
 
-    const changeDate = (vals) =>{
+    const changeDate = (selectedDates) => {
+      setUserProfile((prevState) => ({
+        ...prevState,
+        availability: selectedDates || [],
+      }));
+    };
 
-      setUserProfile({userProfile, availability : vals});
-    }
-
-    const handleSubmit = async (e) => {
+    const handleSubmit =(e)=>{
       e.preventDefault();
-      try {
-        const response = await axios.post('/api/update_profile', userProfile, {
+        axios.post('/api/update_profile', {
           headers: {
-            'Content-Type': 'application/json',
+            scheme: 'https',
           },
-        });
-      
-        if (response.ok) {
-          const result = response.json()
-          console.log("Profile updated successfully");
-        } else {
-          console.error("Error updating profile", response.status);
-         }
-        }catch (error) {
+          userProfile})
+        .then((response) => {
+          setIsEditing(false);
+          console.log(response.data.message);
+        })
+        .catch(error => {
           console.error('Error', error);
-        }
-    };
+        });
+    }
 
     const states = ['TX', 'CA', 'NY', 'FL'];
     const skillsOptions = ['run','jump','climb','swim'];
@@ -78,10 +81,10 @@ const Profile = () =>{
             <div className='profile'>
                 <h2>Profile</h2>
                 <div className="profile-picture">
-                    <img src={ default_image} />
+                    <img src={ default_image} alt = 'default'/>
                 </div>
 
-            <form className={isEditing ? 'editing' : 'viewing'} onSubmit={handleSubmit}>
+            <form className={isEditing ? 'editing' : 'viewing'} id = 'profileForm' onSubmit={handleSubmit}>
     
                 <label>User Name</label>
                 <input
@@ -164,7 +167,7 @@ const Profile = () =>{
                 </select>
         
                 <label>Preferences</label>
-                <textarea name="preferences" value={userProfile.preferences} onChange={handleChange} disabled={!isEditing} />
+                <textarea name="preferences" value={userProfile.preferences} onChange = {handleChange} disabled={!isEditing} />
         
                 <label>Availability</label>
         {isEditing ? (
@@ -181,10 +184,11 @@ const Profile = () =>{
             ))}
           </ul>
         )}
+                
+                
                 {isEditing ? 
-                  <button type="submit" onSubmit={() => handleSubmit} onClick={() => setIsEditing(!isEditing)}>Save</button> :
-                  <button type="button" onClick={() => setIsEditing(!isEditing)}>Edit</button>
-
+                  <button type="submit" value ="submit" form = 'profileForm'>Save</button> :
+                  <button type="button" onClick={(e)=>{e.preventDefault(); setIsEditing(true)}}>Edit</button>
                 }
             </form>
           </div>
