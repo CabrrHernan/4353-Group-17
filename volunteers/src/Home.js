@@ -10,6 +10,15 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+// Explicitly setting Axios to use the xhr adapter for browser environments.
+const instance = axios.create({
+  adapter: axios.defaults.adapter,
+});
+
+
+
+
+
 
 
 
@@ -26,16 +35,35 @@ function Messages(){
         console.error('There was an error fetching messages', error);
       });
     },[]);
-    
 
     const [filter, setFilter] = useState(0); 
-    const filterMessages = messages.filter(message => message.read === filter);
-    if(filterMessages.length === 0 && filter === 0){
-        return(<p>No new messages</p>);
-    }
-    else if(filterMessages.length === 1 && filter === 1){
-        return(<p>No old messages</p>);
-    }
+
+    const filterMessages =  messages.filter(message => message.read === filter);
+
+    
+
+
+    const handleRead = async (id) => {
+      console.log(id);
+      const updatedMessages = messages.map(msg => {
+        if (msg.id === id) {
+          return { ...msg, read: 1 }; 
+        }
+        return msg; 
+      });
+      console.log(updatedMessages);
+      setMessages(updatedMessages);
+      axios.post("/api/read_message", messages)
+        .then(response => {
+          console.log(response.data); 
+        }).catch(error => {
+          console.error('There was an error updating messages', error);
+        });
+
+    };
+
+    
+
     return (
         <div className = "widget">
             <h2>Notifications</h2>
@@ -47,11 +75,22 @@ function Messages(){
                     onClick={() => setFilter(1)}
                 >Old</Button>
             </div>
+            {filterMessages.length === 0 && filter === 0 && (
+                <p>No new messages</p>
+            )}
+            {filterMessages.length === 0 && filter === 1 && (
+                <p>No old messages</p>
+            )}
+
+            {filterMessages.length > 0  && (
+          
             <ToastContainer className="toast-container">
                 {
+                
                 filterMessages.map((msg) => (
-                    <Toast className = "message-container"key={msg.id}>
-                        <Toast.Header className="message-header">
+                    <Toast className = "message-container" key={msg.id} >
+                        <Toast.Header className="message-header"  closeButton = {msg.read == 0} onClick= {() => msg.read ===0 && handleRead(msg.id)}>
+                        
                             <strong className="message-title">{msg.title}</strong>
                             <small className="message-time">{msg.time}</small>
                         </Toast.Header>
@@ -62,6 +101,7 @@ function Messages(){
                     ))
                 }
             </ToastContainer>
+            )}    
         </div> 
     );
 };

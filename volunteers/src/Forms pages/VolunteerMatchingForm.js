@@ -1,51 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import styles from './VolunteerMatchingForm.module.css';
-import { useNavigate } from 'react-router-dom';
-
-
-// Mock data for demonstration (replace with actual database calls)
-const volunteerData = [
-  { id: 1, name: 'John Doe', profile: 'Programming' },
-  { id: 2, name: 'Jane Smith', profile: 'Project Management' },
-];
-
-const eventData = [
-  { id: 1, name: 'Hackathon', requiredSkill: 'Programming' },
-  { id: 2, name: 'Fundraising Campaign', requiredSkill: 'Project Management' },
-];
 
 function VolunteerMatchingForm() {
-  // Form state
   const [volunteer, setVolunteer] = useState(null);
   const [matchedEvent, setMatchedEvent] = useState(null);
   const [manualEvent, setManualEvent] = useState('');
+  const [events, setEvents] = useState([]);
+  const [error, setError] = useState(''); // Add error state
+  const [success, setSuccess] = useState(''); // Add success state
 
-  // Simulate fetching volunteer from database and matching event
   useEffect(() => {
-    const fetchVolunteer = () => {
-      const selectedVolunteer = volunteerData[0]; // Fetching first volunteer for demo
-      setVolunteer(selectedVolunteer);
-      matchEvent(selectedVolunteer);
+    const fetchVolunteer = async () => {
+      const volunteerResponse = await fetch('/api/volunteers');
+      const volunteerData = await volunteerResponse.json();
+      setVolunteer(volunteerData[0]); // For demo, auto-select the first volunteer
     };
+
+    const fetchEvents = async () => {
+      const eventResponse = await fetch('/api/events');
+      const eventData = await eventResponse.json();
+      setEvents(eventData);
+    };
+
     fetchVolunteer();
+    fetchEvents();
   }, []);
 
-  // Match event based on volunteer's profile
-  const matchEvent = (volunteer) => {
-    const matched = eventData.find((event) => event.requiredSkill === volunteer.profile);
-    setMatchedEvent(matched);
+  const matchEvent = async () => {
+    const response = await fetch('/api/match', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        volunteer_id: volunteer?.id,
+        manual_event_id: manualEvent ? parseInt(manualEvent) : null,
+      }),
+    });
+
+    if (response.ok) {
+      const matchData = await response.json();
+      setMatchedEvent(matchData.event);
+      setSuccess('Volunteer matched successfully!'); // Set success message
+    } else {
+      const errorData = await response.json();
+      setError(errorData.message || 'Failed to match volunteer'); // Set error message
+    }
   };
 
   const handleManualEventChange = (e) => {
-    const selectedEventId = e.target.value;
-    const selectedEvent = eventData.find(event => event.id === parseInt(selectedEventId));
-    setManualEvent(selectedEvent);
+    setManualEvent(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Volunteer:', volunteer);
-    console.log('Matched Event:', matchedEvent || manualEvent);
+    setError(''); // Reset error before submission
+    setMatchedEvent(null); // Reset matched event
+
+    await matchEvent(); // Call matchEvent function
   };
 
   return (
@@ -55,38 +67,36 @@ function VolunteerMatchingForm() {
         {/* Volunteer Name (Auto-filled) */}
         <label>
           Volunteer Name:
-          <input
-            type="text"
-            value={volunteer ? volunteer.name : ''}
-            readOnly
-          />
+          <input type="text" value={volunteer ? volunteer.name : ''} readOnly />
         </label>
         <br />
 
         {/* Matched Event (Auto-filled based on profile) */}
         <label>
           Matched Event:
-          <input
-            type="text"
-            value={matchedEvent ? matchedEvent.name : 'No match found'}
-            readOnly
-          />
+          <input type="text" value={matchedEvent ? matchedEvent.title : 'No match found'} readOnly />
         </label>
         <br />
 
         {/* Option to manually select another event */}
         <label>
           Manually Select Event:
-          <select onChange={handleManualEventChange} value={manualEvent ? manualEvent.id : ''}>
+          <select onChange={handleManualEventChange} value={manualEvent}>
             <option value="">-- Select Event --</option>
-            {eventData.map((event) => (
+            {events.map((event) => (
               <option key={event.id} value={event.id}>
-                {event.name}
+                {event.title}
               </option>
             ))}
           </select>
         </label>
         <br />
+
+        {/* Error message */}
+        {error && <div className={styles.error}>{error}</div>}
+
+        {/* Success message */}
+        {success && <div className={styles.success}>{success}</div>}
 
         {/* Submit Button */}
         <button type="submit">Submit Match</button>

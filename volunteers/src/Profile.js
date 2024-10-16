@@ -52,24 +52,22 @@ const Profile = () =>{
 
     const handleSubmit = async (e) => {
       e.preventDefault();
-      try{
-        const response = await fetch('/api/update_profile',{
-          method:'POST',
-          headers:{
+      try {
+        const response = await axios.post('/api/update_profile', userProfile, {
+          headers: {
             'Content-Type': 'application/json',
           },
-          body:JSON.stringify(userProfile),
         });
-        if(response.ok){
-          const result = await response.json();
+      
+        if (response.ok) {
+          const result = response.json()
+          console.log("Profile updated successfully");
+        } else {
+          console.error("Error updating profile", response.status);
+         }
+        }catch (error) {
+          console.error('Error', error);
         }
-        else{
-          console.error("Error updating Profile");
-        }
-      }
-      catch(error){
-        console.error('Error', error);
-      }
     };
 
     const states = ['TX', 'CA', 'NY', 'FL'];
@@ -183,7 +181,7 @@ const Profile = () =>{
             )}
 
                 {isEditing ? 
-                  <button type="submit" onSubmit={handleSubmit} onClick={() => setIsEditing(!isEditing)}>Save</button> :
+                  <button type="submit" onSubmit={() => handleSubmit} onClick={() => setIsEditing(!isEditing)}>Save</button> :
                   <button type="button" onClick={() => setIsEditing(!isEditing)}>Edit</button>
 
                 }
