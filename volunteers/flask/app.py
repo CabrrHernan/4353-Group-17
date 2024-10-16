@@ -11,6 +11,9 @@ users = {}
 
 SECRET_KEY = 'your_secret_key'
 
+@app.route('/')
+def home():
+    return "Welcome to the API"
 events = [
     {'id': 1, 'title': 'Hackathon', 'date': '2024-09-19', 'content': 'Hackathon Event', 'status': 'accepted', 'requiredSkill': 'Programming'},
     {'id': 2, 'title': 'Fundraising Campaign', 'date': '2024-10-20', 'content': 'Fundraising Campaign', 'status': 'accepted', 'requiredSkill': 'Project Management'}
@@ -125,11 +128,47 @@ def get_profile():
     }
     return jsonify(profile)
 
-@app.route('/api/update_profile', methods= ['POST'])
+# Profile validation function
+def validate_profile(profile):
+    if not profile.get('fullName') or len(profile['fullName']) > 50:
+        return "Full name is required and must be less than 50 characters."
+    if not profile.get('address1') or len(profile['address1']) > 100:
+        return "Address 1 is required and must be less than 100 characters."
+    if not profile.get('city') or len(profile['city']) > 100:
+        return "City is required and must be less than 100 characters."
+    if not profile.get('state') or len(profile['state']) != 2:
+        return "State must be a 2-character code."
+    if not profile.get('zip') or len(profile['zip']) < 5 or len(profile['zip']) > 9:
+        return "Zip code must be between 5 and 9 characters."
+    if not profile.get('skills') or len(profile['skills']) == 0:
+        return "At least one skill is required."
+    if not profile.get('availability') or len(profile['availability']) == 0:
+        return "Availability dates are required."
+    return None
+
+# Profile update route with validation
+@app.route('/api/update_profile', methods=['POST'])
 def update_profile():
     profile = request.get_json()
+    
+    # Validate profile data
+    validation_error = validate_profile(profile)
+    if validation_error:
+        return jsonify({"message": validation_error}), 400
+    
     print(profile)
-    return jsonify({"message":"Success"})
+    return jsonify({"message": "Profile updated successfully."}), 200
+
+
+@app.route('/api/volunteer_history', methods=['GET'])
+def get_volunteer_history():
+    volunteer_history = [
+        {'date': '2023-05-10', 'eventName': 'Event Helper', 'role': 'Helper', 'hours': 4, 'status': 'Completed'},
+        {'date': '2023-07-22', 'eventName': 'Fundraiser', 'role': 'Fundraiser', 'hours': 6, 'status': 'Completed'},
+        {'date': '2023-08-14', 'eventName': 'Social Media Coordinator', 'role': 'Coordinator', 'hours': 3, 'status': 'Completed'}
+    ]
+    return jsonify(volunteer_history)
+
 
 @app.route('/api/match', methods=['POST'])
 def match_volunteer():
