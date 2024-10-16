@@ -6,7 +6,6 @@ import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 import Button from 'react-bootstrap/Button';
 import {format} from 'date-fns'; 
-import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -89,7 +88,7 @@ function Messages(){
                 
                 filterMessages.map((msg) => (
                     <Toast className = "message-container" key={msg.id} >
-                        <Toast.Header className="message-header"  closeButton = {msg.read == 0} onClick= {() => msg.read ===0 && handleRead(msg.id)}>
+                        <Toast.Header className="message-header"  closeButton = {msg.read === 0} onClick= {() => msg.read ===0 && handleRead(msg.id)}>
                         
                             <strong className="message-title">{msg.title}</strong>
                             <small className="message-time">{msg.time}</small>
@@ -122,7 +121,6 @@ function Events(){
     const [filter, setFilter] = useState('accepted'); 
     const getStatus = (eventDate, originalStatus) => {
         const currentDate = new Date();
-        console.log(eventDate);
         return eventDate < currentDate ? 'passed' : originalStatus;
       };
       const filteredEvents = events.filter(event => getStatus(new Date(event.date), event.status) === filter);
