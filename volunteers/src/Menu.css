@@ -1,33 +1,40 @@
 .menu {
-    display: flex;
-    justify-content: center;
-    align-items:center;
-    background-color: #f4f4f4;
-    width: 100vw; 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-  }
-  
-  .menu h1 {
-    font-size: 30px; 
-    margin-left: 15px; 
-    padding-right: 20px;
-  }
-  menu .logout {
-    margin-right: auto; /* Push 'Log Out' to the right */
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f4f4f4;
+  width: 100vw;
+  padding: 10px 0;  /* Adds a small amount of padding for comfort */
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+  z-index: 1000;
+}
 
-  .menu-item {
-    text-decoration: none;
-    color: #333; 
-    font-size: 16px;
-    padding:20px;
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  
-  .menu-item:hover {
-    text-decoration: underline; 
-    transform: translateY(-5px);
-  }
+.menu h1 {
+  font-size: 24px; 
+  margin-right: 30px;  /* Adds space between title and menu items */
+  color: #333;
+  font-weight: 600;
+}
+
+.menu .menu-item {
+  text-decoration: none;
+  color: #333;
+  font-size: 16px;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, color 0.2s;
+}
+
+.menu .menu-item:hover {
+  color: #007bff;  /* Blue color on hover */
+  text-decoration: underline;
+  transform: translateY(-3px);
+}
+
+.menu .logout {
+  margin-left: auto; /* Pushes 'Log Out' to the far right */
+  font-size: 16px;
+}

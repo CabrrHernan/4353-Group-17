@@ -1,10 +1,12 @@
 import './App.css';
 import Home from './Home';
 import Menu from './Menu';
-import EventManagementFrom from './Forms pages/EventManagementForm';
+import EventManagementForm from './Forms pages/EventManagementForm';
 import VolunteerMatchingForm from './Forms pages/VolunteerMatchingForm';
+import VolunteerHistory from './VolunteerHistory';
 import Login from './Login';
 import SignUp from './SignUp';
+import Profile from './Profile'; 
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
@@ -22,6 +24,9 @@ function App() {
     localStorage.setItem('authState', JSON.stringify(authState));
   }, [authState]);
 
+  useEffect(() => {
+    console.log('Auth State:', authState); // Log the auth state for debugging
+  }, [authState]);
 
   return (
     <Router>
@@ -42,10 +47,13 @@ function AppContent({ authState, setAuthState }) {
       <Routes>
         <Route path="/" element={authState.isLoggedIn ? <Home setAuthState={setAuthState} /> : <Navigate to="/login" />} />
         <Route path="/Volunteers" element={authState.isLoggedIn ? <VolunteerMatchingForm /> : <Navigate to="/login" />} />
-        <Route path="/Events" element={authState.isLoggedIn ? <EventManagementFrom /> : <Navigate to="/login" />} />
+        <Route path="/Events" element={authState.isLoggedIn ? <EventManagementForm /> : <Navigate to="/login" />} />
         <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
         <Route path="/login" element={!authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> 
+        <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
+        <Route path="/VolunteerHistory" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );
