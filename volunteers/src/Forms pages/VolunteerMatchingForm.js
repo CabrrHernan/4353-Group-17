@@ -1,51 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import styles from './VolunteerMatchingForm.module.css';
+import axios from 'axios';
 
 function VolunteerMatchingForm() {
-  const [volunteer, setVolunteer] = useState(null);
-  const [matchedEvent, setMatchedEvent] = useState(null);
+  const [volunteers, setVolunteers] = useState([]);
+  const [selectedVolunteerId, setSelectedVolunteerId] = useState('');
   const [manualEvent, setManualEvent] = useState('');
   const [events, setEvents] = useState([]);
-  const [error, setError] = useState(''); // Add error state
-  const [success, setSuccess] = useState(''); // Add success state
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    const fetchVolunteer = async () => {
-      const volunteerResponse = await fetch('/api/volunteers');
-      const volunteerData = await volunteerResponse.json();
-      setVolunteer(volunteerData[0]); // For demo, auto-select the first volunteer
+    const fetchVolunteers = async () => {
+      try {
+        const response = await fetch('/api/volunteers');
+        const volunteerData = await response.json();
+        setVolunteers(volunteerData);
+      } catch (error) {
+        console.error('Failed to fetch volunteers:', error);
+      }
     };
 
     const fetchEvents = async () => {
-      const eventResponse = await fetch('/api/events');
-      const eventData = await eventResponse.json();
-      setEvents(eventData);
+      try {
+        const eventResponse = await fetch('/api/events');
+        const eventData = await eventResponse.json();
+        setEvents(eventData);
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+      }
     };
 
-    fetchVolunteer();
+    fetchVolunteers();
     fetchEvents();
   }, []);
 
-  const matchEvent = async () => {
-    const response = await fetch('/api/match', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        volunteer_id: volunteer?.id,
-        manual_event_id: manualEvent ? parseInt(manualEvent) : null,
-      }),
-    });
-
-    if (response.ok) {
-      const matchData = await response.json();
-      setMatchedEvent(matchData.event);
-      setSuccess('Volunteer matched successfully!'); // Set success message
-    } else {
-      const errorData = await response.json();
-      setError(errorData.message || 'Failed to match volunteer'); // Set error message
-    }
+  const handleVolunteerChange = (e) => {
+    setSelectedVolunteerId(e.target.value);
   };
 
   const handleManualEventChange = (e) => {
@@ -54,31 +45,43 @@ function VolunteerMatchingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Reset error before submission
-    setMatchedEvent(null); // Reset matched event
+    try {
+      const response = await axios.post('/api/match', {
+        volunteer_id: selectedVolunteerId,
+        manual_event_id: manualEvent || null,
+      });
 
-    await matchEvent(); // Call matchEvent function
-  };
+      if (response.status === 200) {
+        setSuccess('Volunteer matched successfully!');
+        setError('');
+      }
+    } catch (error) {
+      console.error('Error response:', error.response);  // Log the full error response for debugging
+      setError(error.response ? error.response.data.message : 'Failed to match volunteer');
+      setSuccess('');
+    }
+};
+
 
   return (
     <div className={styles.volunteerMatchingForm}>
       <h1>Volunteer Matching Form</h1>
       <form onSubmit={handleSubmit}>
-        {/* Volunteer Name (Auto-filled) */}
+        {/* Volunteer Dropdown */}
         <label>
-          Volunteer Name:
-          <input type="text" value={volunteer ? volunteer.name : ''} readOnly />
+          Select Volunteer:
+          <select onChange={handleVolunteerChange} value={selectedVolunteerId}>
+            <option value="">-- Select Volunteer --</option>
+            {volunteers.map((volunteer) => (
+              <option key={volunteer.id} value={volunteer.id}>
+                {volunteer.name}
+              </option>
+            ))}
+          </select>
         </label>
         <br />
 
-        {/* Matched Event (Auto-filled based on profile) */}
-        <label>
-          Matched Event:
-          <input type="text" value={matchedEvent ? matchedEvent.title : 'No match found'} readOnly />
-        </label>
-        <br />
-
-        {/* Option to manually select another event */}
+        {/* Manually Select Event */}
         <label>
           Manually Select Event:
           <select onChange={handleManualEventChange} value={manualEvent}>
@@ -92,10 +95,8 @@ function VolunteerMatchingForm() {
         </label>
         <br />
 
-        {/* Error message */}
+        {/* Error and Success Messages */}
         {error && <div className={styles.error}>{error}</div>}
-
-        {/* Success message */}
         {success && <div className={styles.success}>{success}</div>}
 
         {/* Submit Button */}
@@ -106,3 +107,4 @@ function VolunteerMatchingForm() {
 }
 
 export default VolunteerMatchingForm;
+
