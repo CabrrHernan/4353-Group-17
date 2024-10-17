@@ -17,6 +17,29 @@
     padding-top: 10px; 
 }
 
+.volunteer-history .filters-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.volunteer-history .search-input {
+    flex: 1 1 40%;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.volunteer-history .filter-select {
+    flex: 1 1 25%;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
 .volunteer-history table {
     width: 100%;
     border-collapse: collapse;
@@ -106,12 +129,15 @@
     transition: background-color 0.3s ease;
 }
 
-.volunteer-history .search-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    font-size: 1rem;
-    border-radius: 5px;
-    border: 1px solid #ddd;
+@media (max-width: 768px) {
+    .volunteer-history {
+        width: 95%;
+    }
+    .volunteer-history .filters-container {
+        flex-direction: column;
+    }
+    .volunteer-history .search-input,
+    .volunteer-history .filter-select {
+        width: 100%;
+    }
 }
-
