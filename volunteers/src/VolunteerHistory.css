@@ -105,3 +105,13 @@
     background-color: #45a049;
     transition: background-color 0.3s ease;
 }
+
+.volunteer-history .search-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
