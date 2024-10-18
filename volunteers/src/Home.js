@@ -15,14 +15,6 @@ const instance = axios.create({
 });
 
 
-
-
-
-
-
-
-
-
 function Messages(){
     const [messages, setMessages] = useState([]);
     useEffect(()=>{
@@ -50,7 +42,6 @@ function Messages(){
         }
         return msg; 
       });
-      console.log(updatedMessages);
       setMessages(updatedMessages);
       axios.post("/api/read_message", messages)
         .then(response => {

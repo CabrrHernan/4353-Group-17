@@ -149,7 +149,7 @@ def get_profile():
 def validate_profile(profile):
     if not profile.get('fullName') or len(profile['fullName']) > 50:
         return "Full name is required and must be less than 50 characters."
-    if not profile.get('address1') or len(profile['address1']) > 100:
+    if not profile.get('address') or len(profile['address']) > 100:
         return "Address 1 is required and must be less than 100 characters."
     if not profile.get('city') or len(profile['city']) > 100:
         return "City is required and must be less than 100 characters."
@@ -167,9 +167,10 @@ def validate_profile(profile):
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
     profile = request.get_json()
-    
+    print(profile)
     # Validate profile data
     validation_error = validate_profile(profile)
+    print(validation_error)
     if validation_error:
         return jsonify({"message": validation_error}), 400
     
