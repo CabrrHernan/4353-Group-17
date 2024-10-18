@@ -110,6 +110,26 @@ function Events(){
   }, []);
 
     const [filter, setFilter] = useState('accepted'); 
+
+    const handleStatus = async(id,value) =>{
+      console.log(id, value);
+      const updatedEvents = events.map(e => {
+        if (e.id === id) {
+          return { ...e, status: value }; 
+        }
+        return e; 
+      });
+      setEvents(updatedEvents);
+      axios.post("/api/event_status", 
+        {'id': id, 'value':value}
+      )
+        .then(response => {
+          console.log(response.data); 
+        }).catch(error => {
+          console.error('There was an error updating event status', error);
+        });
+    }
+
     const getStatus = (eventDate, originalStatus) => {
         const currentDate = new Date();
         return eventDate < currentDate ? 'passed' : originalStatus;
@@ -151,7 +171,13 @@ function Events(){
               <p className="event-content">{event.content}</p>
               <span className={`event-status ${getStatus(new Date(event.date), event.status)}`}>
                 {getStatus(new Date(event.date), event.status)}
-              </span>
+                </span>
+                {getStatus(new Date(event.date), event.status) === 'pending' ? 
+                <div className = 'status-buttons'>
+                  <button type = 'button' className = "status-button accept" id = 'accept' value = 'accept' onClick = {() =>handleStatus(event.id, 'accepted')}>Accept</button> 
+                  <button type = 'button'className = "status-button decline" id = 'decline' value = 'decline' onClick = {() => handleStatus(event.id,'declined')}>Decline</button> </div>
+                 : null}
+                 
             </li>
           ))}
         </ul>

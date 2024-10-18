@@ -213,6 +213,45 @@
   color: #fff;
 }
 
+.status-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 10px;
+  position: relative;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+}
+
+.status-button {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  margin: 2px;
+  text-transform: capitalize;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.status-button.accept {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.status-button.accept:active {
+  background-color: #218838; 
+}
+
+.status-button.decline {
+  background-color: #dc3545;
+  color: #fff;
+}
+.status-button.decline:active {
+  background-color: #c82333; 
+}
+
 .filter-buttons {
   display: flex;
   justify-content: center;
