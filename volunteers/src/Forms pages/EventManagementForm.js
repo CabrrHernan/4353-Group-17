@@ -30,41 +30,50 @@ function EventManagementForm() {
     e.preventDefault();
     setError(''); // Reset error before submit
     setSuccess(''); // Reset success message before submit
-
+  
     // Validation: Check if required fields are filled
     if (!form.eventName || !form.eventDescription || !form.location || form.requiredSkills.length === 0 || !form.urgency || !form.eventDate) {
-        setError('Please fill in all fields'); // Set error message if validation fails
-        return; // Stop the submission process
+      setError('Please fill in all fields'); // Set error message if validation fails
+      return; // Stop the submission process
     }
-
+  
     try {
-        const response = await fetch('http://localhost:5000/api/events', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(form),
+      const response = await fetch('http://localhost:5000/api/create_events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: form.eventName,
+          content: form.eventDescription,
+          location: form.location,
+          requiredSkill: form.requiredSkills.join(', '), // Sending skills as comma-separated string
+          urgency: form.urgency,
+          date: form.eventDate,
+          status: 'pending', // Default status
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess('Event created successfully!');
+        setForm({
+          eventName: '',
+          eventDescription: '',
+          location: '',
+          requiredSkills: [],
+          urgency: '',
+          eventDate: ''
         });
-
-        if (response.ok) {
-            const data = await response.json();
-            setSuccess('Event created successfully!');
-            setForm({
-                eventName: '',
-                eventDescription: '',
-                location: '',
-                requiredSkills: [],
-                urgency: '',
-                eventDate: ''
-            });
-        } else {
-            const errorData = await response.json();
-            setError(errorData.message || 'Failed to create event');
-        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to create event');
+      }
     } catch (error) {
-        setError('Network error: Could not connect to server');
+      setError('Network error: Could not connect to server');
     }
-};
+  };
+  
 
   
 
@@ -73,9 +82,7 @@ function EventManagementForm() {
     <div className={styles.eventManagementForm}>
       <h1>Event Management Form</h1>
       <form onSubmit={handleSubmit}>
-        {/* Error message */}
-        {error && <div className={styles.error}>{error}</div>}
-        {success && <div className={styles.success}>{success}</div>}
+        
 
         {/* Event Name */}
         <label>
@@ -162,7 +169,10 @@ function EventManagementForm() {
           />
         </label>
         <br />
-
+        {/* Error message */}
+        {error && <div className={styles.error}>{error}</div>}
+        {success && <div className={styles.success}>{success}</div>}
+        
         {/* Submit Button */}
         <button type="submit">Submit</button>
       </form>
