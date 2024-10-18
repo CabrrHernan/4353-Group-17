@@ -72,10 +72,10 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 ### Setup
 Clone the repo:
-###git clone https://github.com/CabrrHernan/4353-Group-17
-###Install dependencies:
-###Backend: pip install -r requirements.txt
-###Frontend: npm install
-###Start servers:
-###Backend: flask run
+git clone https://github.com/CabrrHernan/4353-Group-17
+Install dependencies:
+Backend: pip install -r requirements.txt
+Frontend: npm install
+Start servers:
+Backend: flask run
 Frontend: npm start
