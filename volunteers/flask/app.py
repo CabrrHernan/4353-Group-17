@@ -16,7 +16,7 @@ def home():
     return "Welcome to the API"
 events = [
         {'id': 1, 'title': 'Event 1', 'date': '2024-09-19', 'content': 'Event 1 Description', 'status': 'accepted'},
-        {'id': 2, 'title': 'Event 2', 'date': '2024-10-20', 'content': 'Event 2 Description', 'status': 'accepted'},
+        {'id': 2, 'title': 'Event 2', 'date': '2024-10-20', 'content': 'Event 2 Description', 'status': 'pending'},
         {'id': 3, 'title': 'Event 3', 'date': '2025-02-18', 'content': 'Event 3 Description', 'status': 'pending'},
         {'id': 4, 'title': 'Event 4', 'date': '2024-08-02', 'content': 'Event 4 Description', 'status': 'passed'},
         {'id': 5, 'title': 'Hackathon', 'date': '2024-09-19', 'content': 'Hackathon Event', 'status': 'accepted', 'requiredSkill': 'Programming'},
@@ -82,6 +82,14 @@ def login():
 def get_events():
     return jsonify(events)
 
+@app.route('/api/event_status', methods = ['POST'])
+def event_status():
+    data = request.get_json()
+    for event in events:
+        if event['id'] == data['id']:
+            event['status'] = data['value']
+    print(events)
+    return(jsonify({"message":"Success"}))
 
 @app.route('/api/read_message', methods = ['POST'])
 def read_message():
