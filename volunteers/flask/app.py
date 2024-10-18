@@ -2,7 +2,7 @@ from flask import Flask, request,jsonify
 from flask_cors import CORS
 import bcrypt
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
 CORS(app)
 
@@ -73,7 +73,7 @@ def login():
 
     token = jwt.encode({
         'username': username,
-        'exp': datetime.utcnow() + timedelta(hours=1)
+        'exp': datetime.now(timezone.utc) + timedelta(hours=1)
     }, SECRET_KEY, algorithm='HS256')
 
     return jsonify({"message": "Login successful", "token": token})
