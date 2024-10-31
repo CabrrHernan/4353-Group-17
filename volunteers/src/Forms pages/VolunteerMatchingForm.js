@@ -13,27 +13,34 @@ function VolunteerMatchingForm() {
   useEffect(() => {
     const fetchVolunteers = async () => {
       try {
-        const response = await fetch('/api/volunteers');
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error('Failed to fetch volunteers');
         const volunteerData = await response.json();
+        console.log('Volunteers fetched:', volunteerData); // Log the fetched data
         setVolunteers(volunteerData);
       } catch (error) {
         console.error('Failed to fetch volunteers:', error);
+        setError('Could not load volunteers. Please try again later.');
       }
     };
-
+  
     const fetchEvents = async () => {
       try {
         const eventResponse = await fetch('/api/events');
+        if (!eventResponse.ok) throw new Error('Failed to fetch events');
         const eventData = await eventResponse.json();
+        console.log('Events fetched:', eventData); // Log the fetched data
         setEvents(eventData);
       } catch (error) {
         console.error('Failed to fetch events:', error);
+        setError('Could not load events. Please try again later.');
       }
     };
-
+  
     fetchVolunteers();
     fetchEvents();
   }, []);
+  
 
   const handleVolunteerChange = (e) => {
     setSelectedVolunteerId(e.target.value);
@@ -54,14 +61,16 @@ function VolunteerMatchingForm() {
       if (response.status === 200) {
         setSuccess('Volunteer matched successfully!');
         setError('');
+        // Reset the form or set state as needed
+        setSelectedVolunteerId('');
+        setManualEvent('');
       }
     } catch (error) {
-      console.error('Error response:', error.response);  // Log the full error response for debugging
+      console.error('Error response:', error.response);
       setError(error.response ? error.response.data.message : 'Failed to match volunteer');
       setSuccess('');
     }
-};
-
+  };
 
   return (
     <div className={styles.volunteerMatchingForm}>
@@ -100,7 +109,9 @@ function VolunteerMatchingForm() {
         {success && <div className={styles.success}>{success}</div>}
 
         {/* Submit Button */}
-        <button type="submit">Submit Match</button>
+        <button type="submit" disabled={!selectedVolunteerId || !manualEvent}>
+          Submit Match
+        </button>
       </form>
     </div>
   );

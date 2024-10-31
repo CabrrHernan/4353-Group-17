@@ -2,9 +2,35 @@ from flask import Flask, request,jsonify
 from flask_cors import CORS
 import bcrypt
 import jwt
+import pg8000
 from datetime import datetime, timedelta
+
 app = Flask(__name__)
 CORS(app)
+
+DATABASE_CONFIG = {
+    "host": "localhost",
+    "user": "postgres",
+    "port": 5432,
+    "database": "4353",
+    "password": "4353"
+}
+
+
+def get_connection():
+    try:
+        conn = pg8000.connect(**DATABASE_CONFIG)
+        return conn
+    except pg8000.DatabaseError as e:
+        print("Database connection error:", e)
+        return None
+
+
+@app.route('/index')
+def index():
+    conn = get_connection()
+    conn.close()
+    return "Connected to the database!"
 
 
 users = {}
@@ -14,29 +40,130 @@ SECRET_KEY = 'your_secret_key'
 @app.route('/')
 def home():
     return "Welcome to the API"
-events = [
-        {'id': 1, 'title': 'Event 1', 'date': '2024-09-19', 'content': 'Event 1 Description', 'status': 'accepted'},
-        {'id': 2, 'title': 'Event 2', 'date': '2024-10-20', 'content': 'Event 2 Description', 'status': 'accepted'},
-        {'id': 3, 'title': 'Event 3', 'date': '2025-02-18', 'content': 'Event 3 Description', 'status': 'pending'},
-        {'id': 4, 'title': 'Event 4', 'date': '2024-08-02', 'content': 'Event 4 Description', 'status': 'passed'},
-        {'id': 5, 'title': 'Hackathon', 'date': '2024-09-19', 'content': 'Hackathon Event', 'status': 'accepted', 'requiredSkill': 'Programming'},
-        {'id': 6, 'title': 'Fundraising Campaign', 'date': '2024-10-20', 'content': 'Fundraising Campaign', 'status': 'accepted', 'requiredSkill': 'Project Management'}
-]
 
-volunteers = [
-    {'id': 1, 'name': 'John Doe', 'profile': 'Programming'},
-    {'id': 2, 'name': 'Jane Smith', 'profile': 'Project Management'}
-]
+volunteers = []
+users = []
 
-@app.route('/api/volunteers', methods=['GET'])
-def get_volunteers():
-    return jsonify(volunteers),200
 messages= [
         { 'id': 1, 'title': 'Message 1', 'time': 'just now', 'content': 'Message content 1' , 'read': 0},
         { 'id': 2, 'title': 'Message 2', 'time': '2 minutes ago', 'content': 'Message content 2', 'read': 1},
         { 'id': 3, 'title': 'Message 3', 'time': '5 minutes ago', 'content': 'Message content 3', 'read': 1 },
         { 'id': 4, 'title': 'Message 4', 'time': '10 minutes ago', 'content': 'Message content 4', 'read': 0 }
     ]
+
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    global users  
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, username, email, location, skills, preferences FROM users")
+        users = cursor.fetchall()  
+        
+        users_list = [{'id': u[0], 'username': u[1], 'email': u[2], 'location': u[3], 'skills': u[4], 'preferences': u[5]} for u in users]
+        return jsonify(users_list), 200
+    except Exception as e:
+        print("Error fetching users:", e)
+        return jsonify({"message": "Error fetching users"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
+@app.route('/api/match', methods=['POST'])
+def match_user():
+    data = request.get_json()
+    print('Received data:', data)  # Log the incoming data for debugging
+    user_id = data.get('user_id')  # Change 'volunteer_id' to 'user_id'
+    manual_event_id = data.get('manual_event_id')
+
+    # Ensure the IDs are integers for consistent matching
+    user = next((u for u in users if u['id'] == int(user_id)), None)
+    matched_event = None
+
+    if user and not manual_event_id:
+        # Match based on required skills
+        matched_event = next((e for e in events if e['required_skill'] in user['skills']), None)
+    elif manual_event_id:
+        # Match based on manually selected event
+        matched_event = next((e for e in events if e['id'] == int(manual_event_id)), None)
+
+    if user and matched_event:
+        return jsonify({'user': user, 'event': matched_event}), 200
+
+    return jsonify({"message": "No match found"}), 404
+
+@app.route('/api/events', methods=['GET'])
+def get_events():
+    global events  
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, title, date, content, status, required_skill FROM events")
+        event_rows = cursor.fetchall()  
+
+        # Convert tuples to a list of dictionaries
+        events = [
+            {
+                'id': row[0],
+                'title': row[1],
+                'date': row[2],
+                'content': row[3],
+                'status': row[4],
+                'required_skill': row[5],
+            } for row in event_rows
+        ]
+
+        return jsonify(events), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/create_event', methods=['POST'])
+def create_event():
+    data = request.get_json()
+
+    # Validating required fields
+    required_fields = {
+        'title': (100, "Title is required and must be less than 100 characters"),
+        'date': (None, "Date is required"),
+        'content': (500, "Content is required and must be less than 500 characters"),
+        'status': (['accepted', 'pending', 'passed'], "Status is required and must be 'accepted', 'pending', or 'passed'"),
+        'requiredSkill': (None, "Required skill is mandatory"),
+    }
+
+    for field, (length, message) in required_fields.items():
+        if not data.get(field) or (length and len(data[field]) > length):
+            return jsonify({"message": message}), 400
+
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO events (title, date, content, status, required_skill)
+            VALUES (%s, %s, %s, %s, %s) RETURNING id
+        """, (data['title'], data['date'], data['content'], data['status'], data['requiredSkill']))
+        event_id = cursor.fetchone()[0]
+        conn.commit()
+        return jsonify({"id": event_id, "message": "Event created successfully"}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
 
 
 @app.route('/api/signup', methods=['POST'])
@@ -78,9 +205,6 @@ def login():
 
     return jsonify({"message": "Login successful", "token": token})
 
-@app.route('/api/events', methods= ['GET'])
-def get_events():
-    return jsonify(events)
 
 
 @app.route('/api/read_message', methods = ['POST'])
@@ -89,43 +213,10 @@ def read_message():
     print(id)
     return(jsonify({"message":"Success"}))
 
-
 @app.route('/api/messages', methods = ['GET'])
 def get_messages():
     return jsonify(messages)
 
-
-@app.route('/api/create_events', methods=['POST'])
-def create_event():
-    data = request.get_json()
-
-    # Validating required fields
-    if not data.get('title') or len(data['title']) > 100:
-        return jsonify({"message": "Title is required and must be less than 100 characters"}), 400
-
-    if not data.get('date'):
-        return jsonify({"message": "Date is required"}), 400
-
-    if not data.get('content') or len(data['content']) > 500:
-        return jsonify({"message": "Content is required and must be less than 500 characters"}), 400
-
-    if not data.get('status') or data['status'] not in ['accepted', 'pending', 'passed']:
-        return jsonify({"message": "Status is required and must be 'accepted', 'pending', or 'passed'"}), 400
-
-    if not data.get('requiredSkill'):
-        return jsonify({"message": "Required skill is mandatory"}), 400
-
-    event_id = len(events) + 1
-    new_event = {
-        'id': event_id,
-        'title': data['title'],
-        'date': data['date'],
-        'content': data['content'],
-        'status': data['status'],
-        'requiredSkill': data['requiredSkill']
-    }
-    events.append(new_event)
-    return jsonify(new_event), 201
 
 
 @app.route('/api/get_profile', methods = ['GET'])
@@ -185,32 +276,6 @@ def get_volunteer_history():
         {'date': '2023-08-14', 'eventName': 'Social Media Coordinator', 'role': 'Coordinator', 'hours': 3, 'status': 'Completed'}
     ]
     return jsonify(volunteer_history)
-
-
-@app.route('/api/match', methods=['POST'])
-def match_volunteer():
-    data = request.get_json()
-    print('Received data:', data)  # Log the incoming data for debugging
-    volunteer_id = data.get('volunteer_id')
-    manual_event_id = data.get('manual_event_id')
-
-    # Ensure the IDs are integers for consistent matching
-    volunteer = next((v for v in volunteers if v['id'] == int(volunteer_id)), None)
-    matched_event = None
-
-    if volunteer and not manual_event_id:
-        # Match based on required skills
-        matched_event = next((e for e in events if e['requiredSkill'] == volunteer['profile']), None)
-    elif manual_event_id:
-        # Match based on manually selected event
-        matched_event = next((e for e in events if e['id'] == int(manual_event_id)), None)
-
-    if volunteer and matched_event:
-        return jsonify({'volunteer': volunteer, 'event': matched_event}), 200
-
-    return jsonify({"message": "No match found"}), 404
-
-
 
 
 
