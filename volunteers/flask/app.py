@@ -6,6 +6,7 @@ import jwt
 import pg8000
 from datetime import datetime, timedelta
 
+from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
 CORS(app)
 
@@ -48,6 +49,23 @@ def home():
 volunteers = []
 users = []
 
+events = [
+        {'id': 1, 'title': 'Event 1', 'date': '2024-09-19', 'content': 'Event 1 Description', 'status': 'accepted'},
+        {'id': 2, 'title': 'Event 2', 'date': '2024-10-20', 'content': 'Event 2 Description', 'status': 'pending'},
+        {'id': 3, 'title': 'Event 3', 'date': '2025-02-18', 'content': 'Event 3 Description', 'status': 'pending'},
+        {'id': 4, 'title': 'Event 4', 'date': '2024-08-02', 'content': 'Event 4 Description', 'status': 'passed'},
+        {'id': 5, 'title': 'Hackathon', 'date': '2024-09-19', 'content': 'Hackathon Event', 'status': 'accepted', 'requiredSkill': 'Programming'},
+        {'id': 6, 'title': 'Fundraising Campaign', 'date': '2024-10-20', 'content': 'Fundraising Campaign', 'status': 'accepted', 'requiredSkill': 'Project Management'}
+]
+
+volunteers = [
+    {'id': 1, 'name': 'John Doe', 'profile': 'Programming'},
+    {'id': 2, 'name': 'Jane Smith', 'profile': 'Project Management'}
+]
+
+@app.route('/api/volunteers', methods=['GET'])
+def get_volunteers():
+    return jsonify(volunteers),200
 messages= [
         { 'id': 1, 'title': 'Message 1', 'time': 'just now', 'content': 'Message content 1' , 'read': 0},
         { 'id': 2, 'title': 'Message 2', 'time': '2 minutes ago', 'content': 'Message content 2', 'read': 1},
@@ -218,12 +236,20 @@ def login():
 
     token = jwt.encode({
         'username': username,
-        'exp': datetime.utcnow() + timedelta(hours=1)
+        'exp': datetime.now(timezone.utc) + timedelta(hours=1)
     }, SECRET_KEY, algorithm='HS256')
 
     return jsonify({"message": "Login successful", "token": token})
 
 
+@app.route('/api/event_status', methods = ['POST'])
+def event_status():
+    data = request.get_json()
+    for event in events:
+        if event['id'] == data['id']:
+            event['status'] = data['value']
+    print(events)
+    return(jsonify({"message":"Success"}))
 
 @app.route('/api/read_message', methods = ['POST'])
 def read_message():
@@ -258,7 +284,7 @@ def get_profile():
 def validate_profile(profile):
     if not profile.get('fullName') or len(profile['fullName']) > 50:
         return "Full name is required and must be less than 50 characters."
-    if not profile.get('address1') or len(profile['address1']) > 100:
+    if not profile.get('address') or len(profile['address']) > 100:
         return "Address 1 is required and must be less than 100 characters."
     if not profile.get('city') or len(profile['city']) > 100:
         return "City is required and must be less than 100 characters."
@@ -276,9 +302,10 @@ def validate_profile(profile):
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
     profile = request.get_json()
-    
+    print(profile)
     # Validate profile data
     validation_error = validate_profile(profile)
+    print(validation_error)
     if validation_error:
         return jsonify({"message": validation_error}), 400
     

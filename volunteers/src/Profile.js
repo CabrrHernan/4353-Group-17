@@ -60,11 +60,7 @@ const Profile = () =>{
 
     const handleSubmit =(e)=>{
       e.preventDefault();
-        axios.post('/api/update_profile', {
-          headers: {
-            scheme: 'https',
-          },
-          userProfile})
+        axios.post('/api/update_profile', userProfile)
         .then((response) => {
           setIsEditing(false);
           console.log(response.data.message);
