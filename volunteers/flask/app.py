@@ -4,19 +4,18 @@ import time
 import bcrypt
 import jwt
 import pg8000
-from datetime import datetime, timedelta
-
 from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
 CORS(app)
 
 DATABASE_CONFIG = {
-    "host": "localhost",
-    "user": "postgres",
+    "host": "volunteers.postgres.database.azure.com",
+    "user": "Zapingo",
     "port": 5432,
-    "database": "4353",
-    "password": "4353"
+    "database": "postgres",
+    "password": "Volunteers!"
 }
+
 
 
 def get_connection(retries=3, delay=2):
@@ -263,22 +262,43 @@ def get_messages():
 
 
 
-@app.route('/api/get_profile', methods = ['GET'])
+@app.route('/api/get_profile', methods=['GET'])
 def get_profile():
-    profile = {
-        'pic': 'NA',
-        'userName': 'Default',
-        'fullName': 'Johnny Bravo',
-        'email':'yahoo@gmail.com',
-        'address': '4455 University Drive',
-        'city': 'Houston',
-        'state': 'TX',
-        'zip': '77204',
-        'skills': ['run','swim'],
-        'preferences': 'None',
-        'availability': [],
-    }
-    return jsonify(profile)
+    # Get user_id from request arguments 
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"message": "User ID is required"}), 400
+
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT username, email, location, skills, preferences, availability
+            FROM users
+            WHERE id = %s
+        """, (user_id,))
+        user = cursor.fetchone()
+        if user:
+            profile = {
+                'userName': user[0],
+                'email': user[1],
+                'location': user[2],
+                'skills': user[3],
+                'preferences': user[4],
+                'availability': user[5],
+            }
+            return jsonify(profile), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
+    except Exception as e:
+        print("Error fetching user profile:", e)
+        return jsonify({"message": "Error fetching user profile"}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 def validate_profile(profile):
@@ -302,25 +322,91 @@ def validate_profile(profile):
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
     profile = request.get_json()
-    print(profile)
+
     # Validate profile data
     validation_error = validate_profile(profile)
-    print(validation_error)
     if validation_error:
         return jsonify({"message": validation_error}), 400
-    
-    print(profile)
-    return jsonify({"message": "Profile updated successfully."}), 200
+
+    user_id = profile.get('user_id')
+    if not user_id:
+        return jsonify({"message": "User ID is required"}), 400
+
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        # Update user profile in the database
+        cursor.execute("""
+            UPDATE users SET
+                full_name = %s,
+                address = %s,
+                city = %s,
+                state = %s,
+                zip = %s,
+                skills = %s,
+                preferences = %s,
+                availability = %s
+            WHERE id = %s
+        """, (
+            profile.get('fullName'),
+            profile.get('address'),
+            profile.get('city'),
+            profile.get('state'),
+            profile.get('zip'),
+            profile.get('skills'),
+            profile.get('preferences'),
+            profile.get('availability'),
+            user_id
+        ))
+        conn.commit()
+        return jsonify({"message": "Profile updated successfully."}), 200
+    except Exception as e:
+        print("Error updating profile:", e)
+        conn.rollback()
+        return jsonify({"message": "Error updating profile"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 
 @app.route('/api/volunteer_history', methods=['GET'])
 def get_volunteer_history():
-    volunteer_history = [
-        {'date': '2023-05-10', 'eventName': 'Event Helper', 'role': 'Helper', 'hours': 4, 'status': 'Completed'},
-        {'date': '2023-07-22', 'eventName': 'Fundraiser', 'role': 'Fundraiser', 'hours': 6, 'status': 'Completed'},
-        {'date': '2023-08-14', 'eventName': 'Social Media Coordinator', 'role': 'Coordinator', 'hours': 3, 'status': 'Completed'}
-    ]
-    return jsonify(volunteer_history)
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"message": "User ID is required"}), 400
+
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT vh.participation_date, e.name, vh.rating
+            FROM volunteer_history vh
+            JOIN events e ON vh.event_id = e.id
+            WHERE vh.user_id = %s
+        """, (user_id,))
+        history = cursor.fetchall()
+        history_list = []
+        for record in history:
+            history_list.append({
+                'date': record[0].strftime('%Y-%m-%d'),
+                'eventName': record[1],
+                'rating': record[2],
+                'status': 'Completed'  # Set as "Completed" for all entries
+            })
+        return jsonify(history_list), 200
+    except Exception as e:
+        print("Error fetching volunteer history:", e)
+        return jsonify({"message": "Error fetching volunteer history"}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 
