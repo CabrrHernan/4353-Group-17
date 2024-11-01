@@ -9,15 +9,18 @@ function EventManagementForm() {
         location: '',
         requiredSkills: [],
         urgency: '',
-        eventDate: ''
+        eventDate: '',
+        endDate: '',
+        capacity: '',
+        isFull: false,
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm(prevForm => ({ ...prevForm, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setForm(prevForm => ({ ...prevForm, [name]: type === 'checkbox' ? checked : value }));
     };
   
     const handleMultiSelectChange = (e) => {
@@ -29,30 +32,39 @@ function EventManagementForm() {
         e.preventDefault();
         setError('');
         setSuccess('');
-  
+    
         // Validation
-        if (!form.eventName || !form.eventDescription || !form.location || form.requiredSkills.length === 0 || !form.urgency || !form.eventDate) {
-            setError('Please fill in all fields');
+        if (!form.eventName || !form.eventDescription || !form.location || form.requiredSkills.length === 0 || !form.urgency || !form.eventDate || !form.endDate || !form.capacity) {
+            setError('Please fill in all required fields');
             return;
         }
-  
+    
+        // Map urgency to integer
+        const urgencyMapping = {
+            Low: 1,
+            Medium: 2,
+            High: 3,
+        };
+    
         try {
-            const response = await fetch('http://localhost:5000/api/create_events', {
+            const response = await fetch('http://localhost:5000/api/create_event', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    title: form.eventName,
-                    content: form.eventDescription,
+                    name: form.eventName,
+                    description: form.eventDescription,
                     location: form.location,
-                    requiredSkill: form.requiredSkills.join(', '),
-                    urgency: form.urgency,
-                    date: form.eventDate,
-                    status: 'pending',
+                    required_skills: form.requiredSkills.join(', '),
+                    urgency_level: urgencyMapping[form.urgency],
+                    start_date: form.eventDate,
+                    end_date: form.endDate,
+                    capacity: parseInt(form.capacity, 10),
+                    is_full: form.isFull ? form.isFull : null,
                 }),
             });
-  
+
             if (response.ok) {
                 const data = await response.json();
                 setSuccess('Event created successfully!');
@@ -66,7 +78,10 @@ function EventManagementForm() {
                     location: '',
                     requiredSkills: [],
                     urgency: '',
-                    eventDate: ''
+                    eventDate: '',
+                    endDate: '',
+                    capacity: '',
+                    isFull: false,
                 });
             } else {
                 const errorData = await response.json();
@@ -128,10 +143,10 @@ function EventManagementForm() {
                         multiple
                         required
                     >
-                        <option value="Communication" selected={form.requiredSkills.includes("Communication")}>Communication</option>
-                        <option value="Project Management" selected={form.requiredSkills.includes("Project Management")}>Project Management</option>
-                        <option value="Technical Skills" selected={form.requiredSkills.includes("Technical Skills")}>Technical Skills</option>
-                        <option value="Leadership" selected={form.requiredSkills.includes("Leadership")}>Leadership</option>
+                        <option value="Communication">Communication</option>
+                        <option value="Project Management">Project Management</option>
+                        <option value="Technical Skills">Technical Skills</option>
+                        <option value="Leadership">Leadership</option>
                     </select>
                 </label>
                 <br />
@@ -165,7 +180,46 @@ function EventManagementForm() {
                     />
                 </label>
                 <br />
-                
+
+                {/* End Date (Date Picker) */}
+                <label>
+                    End Date:
+                    <input
+                        type="date"
+                        name="endDate"
+                        value={form.endDate}
+                        onChange={handleChange}
+                        required
+                    />
+                </label>
+                <br />
+
+                {/* Capacity (Number Input) */}
+                <label>
+                    Capacity:
+                    <input
+                        type="number"
+                        name="capacity"
+                        value={form.capacity}
+                        onChange={handleChange}
+                        required
+                        min="1"  // Minimum capacity
+                    />
+                </label>
+                <br />
+
+                {/* Is Full (Checkbox) */}
+                <label>
+                    Is Full:
+                    <input
+                        type="checkbox"
+                        name="isFull"
+                        checked={form.isFull}
+                        onChange={handleChange}
+                    />
+                </label>
+                <br />
+
                 {/* Error and Success Messages */}
                 {error && <div className={styles.error}>{error}</div>}
                 {success && <div className={styles.success}>{success}</div>}

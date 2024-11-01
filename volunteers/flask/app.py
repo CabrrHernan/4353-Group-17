@@ -1,5 +1,6 @@
 from flask import Flask, request,jsonify
 from flask_cors import CORS
+import time
 import bcrypt
 import jwt
 import pg8000
@@ -17,13 +18,16 @@ DATABASE_CONFIG = {
 }
 
 
-def get_connection():
-    try:
-        conn = pg8000.connect(**DATABASE_CONFIG)
-        return conn
-    except pg8000.DatabaseError as e:
-        print("Database connection error:", e)
-        return None
+def get_connection(retries=3, delay=2):
+    for attempt in range(retries):
+        try:
+            conn = pg8000.connect(**DATABASE_CONFIG)
+            return conn
+        except pg8000.DatabaseError as e:
+            print(f"Database connection error on attempt {attempt + 1}: {e}")
+            time.sleep(delay)
+    print("Failed to connect to the database after multiple attempts.")
+    return None
 
 
 @app.route('/index')
@@ -74,25 +78,33 @@ def get_users():
 @app.route('/api/match', methods=['POST'])
 def match_user():
     data = request.get_json()
-    print('Received data:', data)  # Log the incoming data for debugging
-    user_id = data.get('user_id')  # Change 'volunteer_id' to 'user_id'
+    user_id = data.get('volunteer_id')  # Use 'volunteer_id' from the form
     manual_event_id = data.get('manual_event_id')
 
-    # Ensure the IDs are integers for consistent matching
-    user = next((u for u in users if u['id'] == int(user_id)), None)
-    matched_event = None
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
 
-    if user and not manual_event_id:
-        # Match based on required skills
-        matched_event = next((e for e in events if e['required_skill'] in user['skills']), None)
-    elif manual_event_id:
-        # Match based on manually selected event
-        matched_event = next((e for e in events if e['id'] == int(manual_event_id)), None)
+    cursor = conn.cursor()
+    try:
+        # Insert matched user and event into the database with status 'pending'
+        cursor.execute("""
+            INSERT INTO event_matches (user_id, event_id, status)
+            VALUES (%s, %s, 'pending') RETURNING id
+        """, (user_id, manual_event_id))
+        
+        match_id = cursor.fetchone()[0]
+        conn.commit()
+        
+        return jsonify({"message": "Volunteer matched successfully!", "match_id": match_id}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
-    if user and matched_event:
-        return jsonify({'user': user, 'event': matched_event}), 200
 
-    return jsonify({"message": "No match found"}), 404
 
 @app.route('/api/events', methods=['GET'])
 def get_events():
@@ -103,18 +115,22 @@ def get_events():
 
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, title, date, content, status, required_skill FROM events")
+        cursor.execute("SELECT id, name, description, location, required_skills, urgency_level, start_date, end_date, capacity, is_full FROM events")
         event_rows = cursor.fetchall()  
 
         # Convert tuples to a list of dictionaries
         events = [
             {
                 'id': row[0],
-                'title': row[1],
-                'date': row[2],
-                'content': row[3],
-                'status': row[4],
-                'required_skill': row[5],
+                'name': row[1],
+                'description': row[2],
+                'location': row[3],
+                'required_skills': row[4],
+                'urgency_level': row[5],
+                'start_date': row[6],
+                'end_date': row[7],
+                'capacity': row[8],
+                'is_full': row[9],
             } for row in event_rows
         ]
 
@@ -125,17 +141,19 @@ def get_events():
         cursor.close()
         conn.close()
 
+
 @app.route('/api/create_event', methods=['POST'])
 def create_event():
     data = request.get_json()
 
-    # Validating required fields
     required_fields = {
-        'title': (100, "Title is required and must be less than 100 characters"),
-        'date': (None, "Date is required"),
-        'content': (500, "Content is required and must be less than 500 characters"),
-        'status': (['accepted', 'pending', 'passed'], "Status is required and must be 'accepted', 'pending', or 'passed'"),
-        'requiredSkill': (None, "Required skill is mandatory"),
+        'name': (100, "Event name is required and must be less than 100 characters"),
+        'start_date': (None, "Start date is required"),
+        'end_date': (None, "End date is required"),
+        'description': (500, "Description is required and must be less than 500 characters"),
+        'urgency_level': (None, "Urgency level is required"),
+        'required_skills': (None, "Required skills are mandatory"),
+        'capacity': (None, "Capacity is required"),
     }
 
     for field, (length, message) in required_fields.items():
@@ -146,25 +164,25 @@ def create_event():
     if not conn:
         return jsonify({"message": "Database connection failed"}), 500
 
-    cursor = conn.cursor()
     try:
-        cursor.execute("""
-            INSERT INTO events (title, date, content, status, required_skill)
-            VALUES (%s, %s, %s, %s, %s) RETURNING id
-        """, (data['title'], data['date'], data['content'], data['status'], data['requiredSkill']))
-        event_id = cursor.fetchone()[0]
-        conn.commit()
-        return jsonify({"id": event_id, "message": "Event created successfully"}), 201
+        with conn.cursor() as cursor:
+            # Set default value for is_full if not provided
+            is_full = data.get('is_full', False)  # Default to False if not included
+
+            cursor.execute("""
+                INSERT INTO events (name, start_date, end_date, description, urgency_level, required_skills, capacity, is_full)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+            """, (data['name'], data['start_date'], data['end_date'], data['description'], 
+                  data['urgency_level'], data['required_skills'], data['capacity'], is_full))  # Use is_full here
+
+            event_id = cursor.fetchone()[0]
+            conn.commit()
+            return jsonify({"id": event_id, "message": "Event created successfully"}), 201
     except Exception as e:
         conn.rollback()
         return jsonify({"message": str(e)}), 500
     finally:
-        cursor.close()
         conn.close()
-
-
-
-
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -236,7 +254,7 @@ def get_profile():
     }
     return jsonify(profile)
 
-# Profile validation function
+
 def validate_profile(profile):
     if not profile.get('fullName') or len(profile['fullName']) > 50:
         return "Full name is required and must be less than 50 characters."
@@ -254,7 +272,7 @@ def validate_profile(profile):
         return "Availability dates are required."
     return None
 
-# Profile update route with validation
+
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
     profile = request.get_json()
