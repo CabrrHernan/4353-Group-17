@@ -3,17 +3,22 @@ from flask_cors import CORS
 import time
 import bcrypt
 import jwt
-import pg8000
+import psycopg2
+from psycopg2 import OperationalError, extras
+from datetime import datetime, timedelta
+
 from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
 CORS(app)
 
+
+#Enter DB Credentials 
 DATABASE_CONFIG = {
-    "host": "volunteers.postgres.database.azure.com",
-    "user": "Zapingo",
+    "host": 'localhost',
+    "user": "postgres",
     "port": 5432,
-    "database": "postgres",
-    "password": "Volunteers!"
+    "dbname": "volunteers",
+    "password": ""
 }
 
 
@@ -21,9 +26,10 @@ DATABASE_CONFIG = {
 def get_connection(retries=3, delay=2):
     for attempt in range(retries):
         try:
-            conn = pg8000.connect(**DATABASE_CONFIG)
+            conn = psycopg2.connect(**DATABASE_CONFIG)
+            print("Successfully connected to the database.")
             return conn
-        except pg8000.DatabaseError as e:
+        except OperationalError as e:
             print(f"Database connection error on attempt {attempt + 1}: {e}")
             time.sleep(delay)
     print("Failed to connect to the database after multiple attempts.")
@@ -48,14 +54,7 @@ def home():
 volunteers = []
 users = []
 
-events = [
-        {'id': 1, 'title': 'Event 1', 'date': '2024-09-19', 'content': 'Event 1 Description', 'status': 'accepted'},
-        {'id': 2, 'title': 'Event 2', 'date': '2024-10-20', 'content': 'Event 2 Description', 'status': 'pending'},
-        {'id': 3, 'title': 'Event 3', 'date': '2025-02-18', 'content': 'Event 3 Description', 'status': 'pending'},
-        {'id': 4, 'title': 'Event 4', 'date': '2024-08-02', 'content': 'Event 4 Description', 'status': 'passed'},
-        {'id': 5, 'title': 'Hackathon', 'date': '2024-09-19', 'content': 'Hackathon Event', 'status': 'accepted', 'requiredSkill': 'Programming'},
-        {'id': 6, 'title': 'Fundraising Campaign', 'date': '2024-10-20', 'content': 'Fundraising Campaign', 'status': 'accepted', 'requiredSkill': 'Project Management'}
-]
+
 
 volunteers = [
     {'id': 1, 'name': 'John Doe', 'profile': 'Programming'},
@@ -207,16 +206,21 @@ def signup():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
+    conn = get_connection()
+    cur = conn.cursor()
 
-    if username in users:
+    cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+    if cur.fetchone() is not None:
+        cur.close()
+        conn.close()
         return jsonify({"message": "Username already exists"}), 400
 
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-    users[username] = {
-        'email': email,
-        'password': hashed_password
-    }
+    cur.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)", 
+                (username, hashed_password, email))
+    conn.commit()
+    cur.close()
+    conn.close()
     
     return jsonify({"message": "User created successfully"}), 201
 
@@ -225,29 +229,56 @@ def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=extras.DictCursor)
 
-    if username not in users:
-        return jsonify({"message": "Invalid credentials"}), 401
+    try:
 
-    stored_password = users[username]['password']
-    if not bcrypt.checkpw(password.encode('utf-8'), stored_password):
-        return jsonify({"message": "Invalid credentials"}), 401
+        cur.execute("SELECT username, password, id FROM users WHERE username = %s", (username,))
+        user_record = cur.fetchone()
 
-    token = jwt.encode({
-        'username': username,
-        'exp': datetime.now(timezone.utc) + timedelta(hours=1)
-    }, SECRET_KEY, algorithm='HS256')
+        if user_record is None:
+            return jsonify({"message": "Invalid credentials"}), 401
+        
+        stored_password = user_record['password'].tobytes()
 
-    return jsonify({"message": "Login successful", "token": token})
+        if not bcrypt.checkpw(password.encode('utf-8'), stored_password):
+            return jsonify({"message": "Invalid credentials"}), 401
+
+        token = jwt.encode({
+            'username': username,
+            'id': user_record['id'],
+            'exp': datetime.now(timezone.utc) + timedelta(hours=1)
+        }, SECRET_KEY, algorithm='HS256')
+
+        return jsonify({"message": "Login successful", "token": token})
+
+    finally:
+        cur.close()
+        conn.close()
 
 
 @app.route('/api/event_status', methods = ['POST'])
 def event_status():
     data = request.get_json()
-    for event in events:
-        if event['id'] == data['id']:
-            event['status'] = data['value']
-    print(events)
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+    try:
+        cur = conn.cursor()
+        cur.execute("""UPDATE event_matches
+            SET status = %s
+            WHERE event_id = %s""", (data['value'],data['id']))
+        conn.commit()
+        print(cur.rowcount)
+    except Exception as e:
+        print("Error updating event status:", e)
+        conn.rollback()
+        return jsonify({"message": "Error updating event status"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
     return(jsonify({"message":"Success"}))
 
 @app.route('/api/read_message', methods = ['POST'])
@@ -258,15 +289,79 @@ def read_message():
 
 @app.route('/api/messages', methods = ['GET'])
 def get_messages():
-    return jsonify(messages)
+    user = request.args['user']
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+    try:
+        cur = conn.cursor()
+        cur.execute("""SELECT u.id as user_id, n.message, n.is_read, n.type, n.time
+                    FROM users u
+                    JOIN notifications n ON u.id = n.user_id
+                    WHERE u.username = %s""", (user,)
+        )
+        
+        msg = cur.fetchone()
+        messages = list()
+        while(msg):
+            msgObj = {
+                'id':msg[0], 'content':msg[1], 'read':msg[2], 'title':msg[3], 'time':msg[4]
+            }
+            messages.append(msgObj)
+            msg = cur.fetchone()
 
+        print(messages)
+        return jsonify(messages), 200
+    except Exception as e:
+        print("Error fetching messages:", e)
+        return jsonify({"message": "Error fetching messages"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route('/api/user_events', methods = ['GET'])
+def user_events():
+    user = request.args['user']
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+    try:
+        cur = conn.cursor(cursor_factory=extras.NamedTupleCursor)
+        cur.execute("""SELECT em.event_id, e.name, e.description, e.location, e.start_date, e.end_date, em.status
+            FROM users u
+            JOIN event_matches em ON u.id = em.user_id
+            JOIN events e ON em.event_id = e.id
+            WHERE u.username = %s""", (user,))
+        events = list()
+        event = cur.fetchone()
+  
+        while(event):
+            eventObj = {
+                'id' :event[0], 'title' : event[1], 'content' : event[2], 'date' : event[4], 'status': event[6]
+            }
+            events.append(eventObj)
+            event = cur.fetchone()
+
+        print(events)
+
+        return jsonify(events), 200
+    except Exception as e:
+        print("Error fetching user events:", e)
+        return jsonify({"message": "Error fetching user events"}), 500
+    finally:
+        cur.close()
+        conn.close()
+    
 
 
 @app.route('/api/get_profile', methods=['GET'])
 def get_profile():
-    # Get user_id from request arguments 
-    user_id = request.args.get('user_id')
-    if not user_id:
+   
+    user = request.args['user']
+
+    if not user:
+        print('No user ID')
         return jsonify({"message": "User ID is required"}), 400
 
     conn = get_connection()
@@ -278,18 +373,25 @@ def get_profile():
         cursor.execute("""
             SELECT username, email, location, skills, preferences, availability
             FROM users
-            WHERE id = %s
-        """, (user_id,))
+            WHERE username = %s
+        """, (user,))
         user = cursor.fetchone()
+        userVals = list()
+        for val in user:
+            if val is None:
+                userVals.append('null')
+            else:
+                userVals.append(val)
         if user:
             profile = {
-                'userName': user[0],
-                'email': user[1],
-                'location': user[2],
-                'skills': user[3],
-                'preferences': user[4],
-                'availability': user[5],
+                'userName': userVals[0],
+                'email': userVals[1],
+                'location': userVals[2],
+                'skills': userVals[3],
+                'preferences': userVals[4],
+                'availability': userVals[5],
             }
+
             return jsonify(profile), 200
         else:
             return jsonify({"message": "User not found"}), 404
@@ -321,16 +423,19 @@ def validate_profile(profile):
 
 @app.route('/api/update_profile', methods=['POST'])
 def update_profile():
-    profile = request.get_json()
-
+    data = request.get_json()
+    profile = data['data']
+    user = data['user']
+    print(profile)
+    print(user)
     # Validate profile data
-    validation_error = validate_profile(profile)
+    '''validation_error = validate_profile(profile)
     if validation_error:
         return jsonify({"message": validation_error}), 400
-
-    user_id = profile.get('user_id')
-    if not user_id:
-        return jsonify({"message": "User ID is required"}), 400
+    '''
+    
+    if not user:
+        return jsonify({"message": "No user found"}), 400
 
     conn = get_connection()
     if not conn:
@@ -339,29 +444,21 @@ def update_profile():
     try:
         cursor = conn.cursor()
         # Update user profile in the database
-        cursor.execute("""
-            UPDATE users SET
-                full_name = %s,
-                address = %s,
-                city = %s,
-                state = %s,
-                zip = %s,
-                skills = %s,
-                preferences = %s,
-                availability = %s
-            WHERE id = %s
-        """, (
-            profile.get('fullName'),
-            profile.get('address'),
-            profile.get('city'),
-            profile.get('state'),
-            profile.get('zip'),
-            profile.get('skills'),
-            profile.get('preferences'),
-            profile.get('availability'),
-            user_id
-        ))
+        update_fields = {k: v for k, v in profile.items() if v != 'null' and v is not None}
+        print(update_fields)
+        if not update_fields:
+            return jsonify({"message": "No valid fields to update."}), 400
+        set_clause = ", ".join(["{} = %s".format(field) for field in update_fields.keys()])
+        values = list(update_fields.values()) + [user] 
+        
+
+        sql = "UPDATE users SET " + set_clause + " WHERE userName = %s"
+       
+        print(sql)
+        print(values)
+        cursor.execute(sql,values)
         conn.commit()
+        print(cursor.rowcount)
         return jsonify({"message": "Profile updated successfully."}), 200
     except Exception as e:
         print("Error updating profile:", e)

@@ -11,10 +11,11 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 function App() {
-  const [authState, setAuthState] = useState({ isLoggedIn: true, username: '' });
+  const [authState, setAuthState] = useState({ isLoggedIn: false, username: '' });
 
   useEffect(() => {
     const storedAuthState = localStorage.getItem('authState');
+    console.log(localStorage)
     if (storedAuthState) {
       setAuthState(JSON.parse(storedAuthState));
     }
@@ -45,7 +46,7 @@ function AppContent({ authState, setAuthState }) {
         <Menu setAuthState={setAuthState} />
       )}
       <Routes>
-        <Route path="/" element={authState.isLoggedIn ? <Home setAuthState={setAuthState} /> : <Navigate to="/login" />} />
+        <Route path="/" element={authState.isLoggedIn ? <Home setAuthState={setAuthState} user = {authState.username}/> : <Navigate to="/login" />} />
         <Route path="/Volunteers" element={authState.isLoggedIn ? <VolunteerMatchingForm /> : <Navigate to="/login" />} />
         <Route path="/Events" element={authState.isLoggedIn ? <EventManagementForm /> : <Navigate to="/login" />} />
         <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
