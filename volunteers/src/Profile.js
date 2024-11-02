@@ -8,25 +8,29 @@ import axios from 'axios';
 
 
 
-const Profile = () =>{
+
+const Profile = ({user}) =>{
     const [isEditing, setIsEditing] = useState(false);
     const [userProfile, setUserProfile] = useState({
       pic: default_image,
       userName: "name",
-      fullName: 'Afro Man',
-      email:'yahoo@gmail.com',
-      address1: '4455 University Drive',
-      city: 'Houston',
-      state: 'TX',
-      zip: '77204',
-      skills: ['run','swim'],
+      fullName: 'null',
+      email:'null',
+      address1: 'null',
+      city: 'null',
+      state: 'null',
+      zip: 'null',
+      skills: ['null'],
       preferences: 'None',
       availability: [],
     },[]);
 
       useEffect(()=>{
-        axios.get('/api/get_profile')
-      .then(response => {
+        axios.get('/api/get_profile', {
+          params: {
+            user: user
+        }
+      }).then(response => {
           setUserProfile(response.data);
         })
       .catch(error => {
@@ -59,8 +63,10 @@ const Profile = () =>{
     };
 
     const handleSubmit =(e)=>{
+      console.log(userProfile)
       e.preventDefault();
-        axios.post('/api/update_profile', userProfile)
+        axios.post('/api/update_profile', 
+          {'data':userProfile, 'user': user})
         .then((response) => {
           setIsEditing(false);
           console.log(response.data.message);
@@ -89,7 +95,7 @@ const Profile = () =>{
                 maxLength="50"
                 value={userProfile.userName}
                 onChange={handleChange}
-                disabled={!isEditing}
+                disabled= {true}
                 />
 
                 <label>Full Name</label>
@@ -166,20 +172,25 @@ const Profile = () =>{
                 <textarea name="preferences" value={userProfile.preferences} onChange = {handleChange} disabled={!isEditing} />
         
                 <label>Availability</label>
-        {isEditing ? (
-          <DatePicker
-            name = "availability"
-            multiple
-            value = {userProfile.availability}
-            onChange = {changeDate}
-          />
-        ) : (
-          <ul>
-            {userProfile.availability.map((date, index) => (
-              <li key={index}>{format(date,'MMMM d yyyy')} </li>
-            ))}
-          </ul>
-        )}
+                {isEditing ? (
+                  <DatePicker
+                    name="availability"
+                    multiple
+                    value={userProfile.availability}
+                    onChange={changeDate}
+                  />
+                ) : (
+                  userProfile.availability === 'null' ? (
+                    <p>No availability selected</p>
+                  ) : (
+                    <ul>
+                      {userProfile.availability.map((date, index) => (
+                        <li key={index}>{format(date, 'MMMM d yyyy')}</li>
+                      ))}
+                    </ul>
+                  )
+                )}
+
                 
                 
                 {isEditing ? 
