@@ -22,10 +22,14 @@ function Login({setAuthState}) {
         const data = await response.json();
 
         if (response.ok) {
-          const { token } = data;
+          const { token, is_admin } = data;
           localStorage.setItem('authToken', token);
-          setAuthState({ isLoggedIn: true, username });
-          navigate('/');
+          setAuthState({ isLoggedIn: true, username, isAdmin: is_admin });
+          if (is_admin) {
+            navigate('/admin');
+          } else {
+            navigate('/');
+          }
         } else {
           alert(data.message || 'Invalid username or password.');
         }
