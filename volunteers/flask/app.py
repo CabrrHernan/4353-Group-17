@@ -6,6 +6,7 @@ import jwt
 import psycopg2
 from psycopg2 import OperationalError, extras
 from datetime import datetime, timedelta
+from models import db, Event
 
 from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
@@ -21,7 +22,8 @@ DATABASE_CONFIG = {
     "password": ""
 }
 
-
+def is_admin(username):
+    return username == 'admin'
 
 def get_connection(retries=3, delay=2):
     for attempt in range(retries):
@@ -89,7 +91,67 @@ def get_users():
         cursor.close()
         conn.close()
 
+@app.route('/admin', methods=['GET'])
+def admin_page():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return jsonify({"message": "Missing token"}), 401
 
+    token = auth_header.split(" ")[1]
+    try:
+        data = jwt.decode(token, 'your_secret_key', algorithms=['HS256'])
+        if not is_admin(data['username']):
+            return jsonify({"message": "Unauthorized"}), 403
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Invalid token"}), 401
+
+    return jsonify({"message": "Welcome to the admin page"}), 200
+
+@app.route('/api/create_event', methods=['POST'])
+def create_event():
+    data = request.get_json()
+
+    required_fields = {
+        'name': (255, "Event name is required and must be less than 255 characters"),
+        'start_date': (None, "Start date is required"),
+        'end_date': (None, "End date is required"),
+        'description': (None, "Description is required"),
+        'urgency_level': (None, "Urgency level is required"),
+        'required_skills': (None, "Required skills are mandatory"),
+        'capacity': (None, "Capacity is required"),
+    }
+
+    for field, (length, message) in required_fields.items():
+        if not data.get(field) or (length and len(data[field]) > length):
+            return jsonify({"message": message}), 400
+
+    try:
+        start_date = datetime.strptime(data['start_date'], '%Y-%m-%d %H:%M:%S')
+        end_date = datetime.strptime(data['end_date'], '%Y-%m-%d %H:%M:%S')
+    except ValueError:
+        return jsonify({"message": "Invalid date format. Use YYYY-MM-DD HH:MM:SS"}), 400
+
+    new_event = Event(
+        name=data['name'],
+        description=data['description'],
+        location=data.get('location'),
+        required_skills=data['required_skills'],
+        urgency_level=data['urgency_level'],
+        start_date=start_date,
+        end_date=end_date,
+        capacity=data['capacity'],
+        max=data.get('is_full', False)
+    )
+
+    try:
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify({"id": new_event.id, "message": "Event created successfully"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 @app.route('/api/match', methods=['POST'])
 def match_user():
@@ -234,7 +296,7 @@ def login():
 
     try:
 
-        cur.execute("SELECT username, password, id FROM users WHERE username = %s", (username,))
+        cur.execute("SELECT username, password, id, is_admin FROM users WHERE username = %s", (username,))
         user_record = cur.fetchone()
 
         if user_record is None:
@@ -248,10 +310,11 @@ def login():
         token = jwt.encode({
             'username': username,
             'id': user_record['id'],
+            'is_admin': user_record['is_admin'],
             'exp': datetime.now(timezone.utc) + timedelta(hours=1)
         }, SECRET_KEY, algorithm='HS256')
 
-        return jsonify({"message": "Login successful", "token": token})
+        return jsonify({"message": "Login successful", "token": token, "is_admin": user_record['is_admin']}), 200
 
     finally:
         cur.close()

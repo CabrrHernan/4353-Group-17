@@ -7,15 +7,15 @@ import VolunteerHistory from './VolunteerHistory';
 import Login from './Login';
 import SignUp from './SignUp';
 import Profile from './Profile'; 
+import Admin from './Admin';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 function App() {
-  const [authState, setAuthState] = useState({ isLoggedIn: false, username: '' });
+  const [authState, setAuthState] = useState({ isLoggedIn: false, username: '', isAdmin: false });
 
   useEffect(() => {
     const storedAuthState = localStorage.getItem('authState');
-    console.log(localStorage)
     if (storedAuthState) {
       setAuthState(JSON.parse(storedAuthState));
     }
@@ -23,10 +23,6 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('authState', JSON.stringify(authState));
-  }, [authState]);
-
-  useEffect(() => {
-    console.log('Auth State:', authState); // Log the auth state for debugging
   }, [authState]);
 
   return (
@@ -55,6 +51,7 @@ function AppContent({ authState, setAuthState }) {
         <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> 
         <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
         <Route path="/VolunteerHistory" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
+        <Route path="/admin" element={authState.isLoggedIn && authState.isAdmin ? <Admin /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );

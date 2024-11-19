@@ -1,0 +1,143 @@
+.admin {
+    position: absolute;
+    height: 100vh;
+    width: 100%;
+    background-color: darkviolet;
+  }
+  
+  .admin-container {
+    top: 120px;
+    gap: 20px;
+    position: absolute;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .admin-widget {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    height: 75%;
+    min-width: 30%;
+    background-color: #f9f9f9;
+    padding-top: 0;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease-in-out;
+    overflow-y: auto;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+  }
+  
+  form div {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  form label {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  form input[type="text"],
+  form input[type="number"],
+  form input[type="datetime-local"],
+  form textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  form input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+  
+  form button {
+    padding: 10px 20px;
+    background-color: #8a2be2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  form button:hover {
+    background-color: #7a1bd2;
+  }
+  
+  h2 {
+    margin-top: 20px;
+    color: white;
+  }
+  
+  input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  ul li {
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  ul li h3 {
+    margin: 0 0 10px 0;
+  }
+  
+  ul li p {
+    margin: 5px 0;
+  }
+  
+  @keyframes pulse {
+    0% {
+      text-shadow:
+        1px 1px 2px #8a2be2,
+        0 0 10px #8a2be2,
+        0 0 20px #8a2be2,
+        0 0 30px #00ffff,
+        0 0 40px #00ffff,
+        0 0 50px #00ffff,
+        0 0 60px #00ffff;
+    }
+    50% {
+      text-shadow:
+        1px 1px 2px #8a2be2,
+        0 0 5px #8a2be2,
+        0 0 10px #8a2be2,
+        0 0 15px #00ffff,
+        0 0 20px #00ffff,
+        0 0 25px #00ffff,
+        0 0 30px #00ffff;
+    }
+    100% {
+      text-shadow:
+        1px 1px 2px #8a2be2,
+        0 0 10px #8a2be2,
+        0 0 20px #8a2be2,
+        0 0 30px #00ffff,
+        0 0 40px #00ffff,
+        0 0 50px #00ffff,
+        0 0 60px #00ffff;
+    }
+  }
