@@ -38,12 +38,12 @@ function EventManagementForm() {
             setError('Please fill in all required fields');
             return;
         }
-    
+     
         // Map urgency to integer
         const urgencyMapping = {
-            Low: 1,
-            Medium: 2,
-            High: 3,
+            Low: 'Low',
+            Medium: 'Medium',
+            High: 'High',
         };
     
         try {
