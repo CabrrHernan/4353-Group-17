@@ -17,14 +17,14 @@ function App() {
   useEffect(() => {
     const storedAuthState = localStorage.getItem('authState');
     if (storedAuthState) {
-      setAuthState(JSON.parse(storedAuthState));
+      const parsedAuthState = JSON.parse(storedAuthState);
+      console.log('App authState:', parsedAuthState); // Debugging
+      setAuthState(parsedAuthState);
     }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('authState', JSON.stringify(authState));
-  }, [authState]);
 
+  
   return (
     <Router>
       <AppContent authState={authState} setAuthState={setAuthState} />
@@ -39,20 +39,20 @@ function AppContent({ authState, setAuthState }) {
   return (
     <div className="App">
       {!hideMenuOnRoutes.includes(location.pathname) && authState.isLoggedIn && (
-        <Menu setAuthState={setAuthState} />
+        <Menu setAuthState={setAuthState} authState={authState} />
       )}
       <Routes>
-        <Route path="/" element={authState.isLoggedIn ? <Home setAuthState={setAuthState} user = {authState.username}/> : <Navigate to="/login" />} />
-        <Route path="/Volunteers" element={authState.isLoggedIn ? <VolunteerMatchingForm /> : <Navigate to="/login" />} />
-        <Route path="/Events" element={authState.isLoggedIn ? <EventManagementForm /> : <Navigate to="/login" />} />
-        <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
-        <Route path="/login" element={!authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} /> 
-        <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
-        <Route path="/VolunteerHistory" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
-        <Route path="/admin" element={authState.isLoggedIn && authState.isAdmin ? <Admin /> : <Navigate to="/login" />} />
-      </Routes>
+      <Route path="/" element={authState.isLoggedIn ? <Home setAuthState={setAuthState} user={authState.username} /> : <Navigate to="/login" />} />
+      <Route path="/Volunteer Matching Form" element={authState.isLoggedIn  ? <VolunteerMatchingForm /> : <Navigate to="/" />} />
+      <Route path="/Event Management Form" element={authState.isLoggedIn  ? <EventManagementForm /> : <Navigate to="/" />} />
+      <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
+      <Route path="/login" element={!authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
+      <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
+      <Route path="/admin" element={authState.isLoggedIn && authState.isAdmin ? <Admin /> : <Navigate to="/" />} />
+    </Routes>
+
     </div>
   );
 }
