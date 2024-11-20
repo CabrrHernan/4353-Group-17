@@ -8,6 +8,7 @@ import Login from './Login';
 import SignUp from './SignUp';
 import Profile from './Profile'; 
 import Admin from './Admin';
+import Report from './Formspages/Reports';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
@@ -50,6 +51,7 @@ function AppContent({ authState, setAuthState }) {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
       <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
+      <Route path="/Reports" element={authState.isLoggedIn  ? <Report /> : <Navigate to="/" />} />
       <Route path="/admin" element={authState.isLoggedIn && authState.isAdmin ? <Admin /> : <Navigate to="/" />} />
     </Routes>
 

@@ -31,12 +31,12 @@ const Menu = ({ authState, setAuthState }) => {
 
       <h2 className="menu-item" onClick={() => navigate('/Volunteer Matching Form')}>Volunteer Matching</h2>
       <h2 className="menu-item" onClick={() => navigate('/Event Management Form')}>Event Management</h2>
-
+      <h2 className="menu-item" onClick={() => navigate('/Reports')}>Reports</h2>
       {isAdmin && (
         <>
           
           <h2 className="menu-item" onClick={() => navigate('/volunteer-history')}>Volunteer History</h2>
-          <h2 className="menu-item" onClick={() => navigate('/Reports')}>Reports</h2>
+         
         </>
       )}
 

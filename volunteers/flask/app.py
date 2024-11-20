@@ -6,7 +6,7 @@ import jwt
 import psycopg2
 from psycopg2 import OperationalError, extras
 from datetime import datetime, timedelta
-from models import db, Event
+from models import db, User, Event, VolunteerHistory, EventMatch
 
 from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
@@ -285,6 +285,39 @@ def create_event():
         if conn:
             conn.close()
 
+
+@app.route('/report/volunteers', methods=['GET'])
+def get_volunteer_report():
+    # Fetch volunteer data and their participation history
+    volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
+    volunteer_report = []
+
+    for user, history in volunteers:
+        volunteer_report.append({
+            'username': user.username,
+            'email': user.email,
+            'location': user.location,
+            'skills': user.skills,
+            'participated_events': [history.event_id for history in history]
+        })
+
+    return jsonify(volunteer_report)
+
+
+@app.route('/report/events', methods=['GET'])
+def get_event_report():
+    # Fetch event details and volunteer assignments
+    events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
+    event_report = []
+
+    for event, match in events:
+        event_report.append({
+            'event_name': event.name,
+            'event_date': event.date,
+            'volunteers_assigned': [match.user_id for match in match]
+        })
+
+    return jsonify(event_report)
 
 
 
