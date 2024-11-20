@@ -47,7 +47,7 @@ function AppContent({ authState, setAuthState }) {
       <Route path="/Volunteer Matching Form" element={authState.isLoggedIn  ? <VolunteerMatchingForm /> : <Navigate to="/" />} />
       <Route path="/Event Management Form" element={authState.isLoggedIn  ? <EventManagementForm /> : <Navigate to="/" />} />
       <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />
-      <Route path="/login" element={!authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
+      <Route path="/login" element={authState.isLoggedIn ? <Login setAuthState={setAuthState} /> : <Navigate to="/" />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/profile" element={authState.isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
       <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
