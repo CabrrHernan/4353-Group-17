@@ -285,40 +285,53 @@ def create_event():
         if conn:
             conn.close()
 
-
 @app.route('/report/volunteers', methods=['GET'])
 def get_volunteer_report():
-    # Fetch volunteer data and their participation history
-    volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
-    volunteer_report = []
+    try:
+        # Query the User and VolunteerHistory models to fetch the data
+        volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
+        
+        volunteer_report = []
+        for user, history in volunteers:
+            # Assuming you need the event names, not just event IDs, you should join with Event
+            events = Event.query.filter(Event.id.in_([h.event_id for h in history])).all()
+            event_names = [event.name for event in events]
+            
+            volunteer_report.append({
+                'username': user.username,
+                'email': user.email,
+                'location': user.location,
+                'skills': user.skills,
+                'participated_events': event_names
+            })
 
-    for user, history in volunteers:
-        volunteer_report.append({
-            'username': user.username,
-            'email': user.email,
-            'location': user.location,
-            'skills': user.skills,
-            'participated_events': [history.event_id for history in history]
-        })
-
-    return jsonify(volunteer_report)
-
+        return jsonify(volunteer_report)
+    except Exception as e:
+        print(f"Error fetching volunteer report: {e}")
+        return jsonify({'error': 'Failed to fetch volunteer report'}), 500
 
 @app.route('/report/events', methods=['GET'])
 def get_event_report():
-    # Fetch event details and volunteer assignments
-    events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
-    event_report = []
+    try:
+        # Query the Event and EventMatch models to fetch the data
+        events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
+        
+        event_report = []
+        for event, match in events:
+            # Get the volunteer details by matching user IDs
+            volunteers = User.query.filter(User.id.in_([m.user_id for m in match])).all()
+            volunteer_names = [volunteer.username for volunteer in volunteers]
+            
+            event_report.append({
+                'event_name': event.name,
+                'event_date': event.date,
+                'volunteers_assigned': volunteer_names
+            })
 
-    for event, match in events:
-        event_report.append({
-            'event_name': event.name,
-            'event_date': event.date,
-            'volunteers_assigned': [match.user_id for match in match]
-        })
-
-    return jsonify(event_report)
-
+        return jsonify(event_report)
+    except Exception as e:
+        print(f"Error fetching event report: {e}")
+        return jsonify({'error': 'Failed to fetch event report'}), 500
 
 
 @app.route('/api/signup', methods=['POST'])
