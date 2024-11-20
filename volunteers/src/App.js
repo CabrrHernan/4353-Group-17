@@ -1,8 +1,8 @@
 import './App.css';
 import Home from './Home';
 import Menu from './Menu';
-import EventManagementForm from './Forms pages/EventManagementForm';
-import VolunteerMatchingForm from './Forms pages/VolunteerMatchingForm';
+import EventManagementForm from './Formspages/EventManagementForm';
+import VolunteerMatchingForm from './Formspages/VolunteerMatchingForm';
 import VolunteerHistory from './VolunteerHistory';
 import Login from './Login';
 import SignUp from './SignUp';
