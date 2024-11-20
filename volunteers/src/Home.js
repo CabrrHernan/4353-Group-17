@@ -1,4 +1,3 @@
-
 import './Home.css';
 import Menu from './Menu';
 import Profile from './Profile';
@@ -198,7 +197,8 @@ function Events({user}){
     )
 }
 
-function Home({ setAuthState, user }) {
+function Home({ setAuthState, authState  }) {
+  const user = authState?.username || 'Guest';
     return(
         <div className = "home">
       <Menu setAuthState={setAuthState} />

@@ -2,11 +2,10 @@
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.Binary(255), nullable=False)
+    password = db.Column(db.LargeBinary(255), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     location = db.Column(db.String(255))
     skills = db.Column(db.Text)

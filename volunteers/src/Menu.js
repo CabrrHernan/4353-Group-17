@@ -1,26 +1,45 @@
 import './Menu.css';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
-const Menu = ({ setAuthState }) => {
+const Menu = ({ authState, setAuthState }) => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedAuthState = localStorage.getItem('authState');
+    if (storedAuthState) {
+      const parsedAuthState = JSON.parse(storedAuthState);
+      console.log('Menu authState:', parsedAuthState); // Debugging
+      setAuthState(parsedAuthState);
+    }
+  }, [setAuthState]);
 
   const handleLogout = () => {
     localStorage.removeItem('authState');
-    setAuthState({ isLoggedIn: false, username: '' });
+    setAuthState({ isLoggedIn: false, username: '', isAdmin: false });
     navigate('/login');
   };
 
+  const username = authState?.username || 'Guest';
+  const isAdmin = authState?.isAdmin || false;
+
   return (
     <nav className="menu">
-      <h1>Welcome, Volunteer</h1>
+      <h1>Welcome, {username}</h1>
 
       <h2 className="menu-item" onClick={() => navigate('/')}>Home</h2>
-      <h2 className="menu-item" onClick={() => navigate('/Volunteers')}>Volunteers</h2>
-      <h2 className="menu-item" onClick={() => navigate('/Events')}>Events</h2>
-      <h2 className="menu-item" onClick={() => navigate('/Notifications')}>Notifications</h2>
-      <h2 className="menu-item" onClick={() => navigate('/Volunteer Matching Form')}>Matching</h2>
+
+      <h2 className="menu-item" onClick={() => navigate('/Volunteer Matching Form')}>Volunteer Matching</h2>
       <h2 className="menu-item" onClick={() => navigate('/Event Management Form')}>Event Management</h2>
-      <h2 className="menu-item" onClick={() => navigate('/volunteer-history')}>Volunteer History</h2> {/* Added Volunteer History */}
+      <h2 className="menu-item" onClick={() => navigate('/Reports')}>Reports</h2>
+      {isAdmin && (
+        <>
+          
+          <h2 className="menu-item" onClick={() => navigate('/volunteer-history')}>Volunteer History</h2>
+         
+        </>
+      )}
+
       <h2 className="menu-item" onClick={handleLogout}>Log Out</h2>
     </nav>
   );

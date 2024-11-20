@@ -6,21 +6,64 @@ import jwt
 import psycopg2
 from psycopg2 import OperationalError, extras
 from datetime import datetime, timedelta
-from models import db, Event
+from models import db, User, Event, VolunteerHistory, EventMatch
 
 from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
 CORS(app)
 
 
-#Enter DB Credentials 
 DATABASE_CONFIG = {
     "host": 'localhost',
     "user": "postgres",
     "port": 5432,
-    "dbname": "volunteers",
-    "password": ""
+    "dbname": "4353",
+    "password": "4353"
 }
+
+try:
+    conn = psycopg2.connect(**DATABASE_CONFIG)
+    print("Connection successful!")
+    conn.close()
+except psycopg2.OperationalError as e:
+    print(f"Error connecting to the database: {e}")
+
+password = "your_password_here"
+stored_hash = "$2b$12$wKJwlvDiUqR5ahcIY2NYMuFa1fy5rkfFwZHsxL4zz3mYqOd9ZBzPa"  # example hash
+
+if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+    print("23rtr32")
+else:
+    print("Password does not match")
+
+def rehash_user_passwords():
+    # Get the database connection
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        # Select users who may need password rehashing
+        cursor.execute("SELECT id, password FROM users")
+        users = cursor.fetchall()
+
+        for user in users:
+            # Check if the password is in the old format (string) and needs rehashing
+            if isinstance(user[1], str):  # Check if password is a plain string
+                hashed_password = bcrypt.hashpw(user[1].encode('utf-8'), bcrypt.gensalt())  # Rehash the password
+                cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, user[0]))
+                conn.commit()  # Commit the changes
+                print(f"Password for user {user[0]} rehashed.")
+
+        return jsonify({"message": "Passwords rehashed successfully!"}), 200
+
+    except Exception as e:
+        print(f"Error rehashing passwords: {e}")
+        return jsonify({"message": "Error rehashing passwords"}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 def is_admin(username):
     return username == 'admin'
@@ -109,49 +152,7 @@ def admin_page():
 
     return jsonify({"message": "Welcome to the admin page"}), 200
 
-@app.route('/api/create_event', methods=['POST'])
-def create_event():
-    data = request.get_json()
 
-    required_fields = {
-        'name': (255, "Event name is required and must be less than 255 characters"),
-        'start_date': (None, "Start date is required"),
-        'end_date': (None, "End date is required"),
-        'description': (None, "Description is required"),
-        'urgency_level': (None, "Urgency level is required"),
-        'required_skills': (None, "Required skills are mandatory"),
-        'capacity': (None, "Capacity is required"),
-    }
-
-    for field, (length, message) in required_fields.items():
-        if not data.get(field) or (length and len(data[field]) > length):
-            return jsonify({"message": message}), 400
-
-    try:
-        start_date = datetime.strptime(data['start_date'], '%Y-%m-%d %H:%M:%S')
-        end_date = datetime.strptime(data['end_date'], '%Y-%m-%d %H:%M:%S')
-    except ValueError:
-        return jsonify({"message": "Invalid date format. Use YYYY-MM-DD HH:MM:SS"}), 400
-
-    new_event = Event(
-        name=data['name'],
-        description=data['description'],
-        location=data.get('location'),
-        required_skills=data['required_skills'],
-        urgency_level=data['urgency_level'],
-        start_date=start_date,
-        end_date=end_date,
-        capacity=data['capacity'],
-        max=data.get('is_full', False)
-    )
-
-    try:
-        db.session.add(new_event)
-        db.session.commit()
-        return jsonify({"id": new_event.id, "message": "Event created successfully"}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"message": str(e)}), 500
 
 @app.route('/api/match', methods=['POST'])
 def match_user():
@@ -224,6 +225,13 @@ def get_events():
 def create_event():
     data = request.get_json()
 
+    # Helper function for field validation
+    def validate_field(data, field, max_length, error_message):
+        if not data.get(field) or (max_length and len(data[field]) > max_length):
+            return jsonify({"message": error_message}), 400
+        return None  # If validation passes
+
+    # Validate required fields
     required_fields = {
         'name': (100, "Event name is required and must be less than 100 characters"),
         'start_date': (None, "Start date is required"),
@@ -235,32 +243,83 @@ def create_event():
     }
 
     for field, (length, message) in required_fields.items():
-        if not data.get(field) or (length and len(data[field]) > length):
-            return jsonify({"message": message}), 400
+        validation_response = validate_field(data, field, length, message)
+        if validation_response:
+            return validation_response
 
-    conn = get_connection()
-    if not conn:
-        return jsonify({"message": "Database connection failed"}), 500
+    # Ensure urgency_level is a string and then capitalize
+    urgency_level = str(data.get('urgency_level', '')).strip().capitalize()
+    if urgency_level not in ['Low', 'Medium', 'High']:
+        return jsonify({"message": "Invalid urgency level. Valid values are 'Low', 'Medium', or 'High'."}), 400
 
+    # Convert required_skills to a comma-separated string
+    required_skills = ",".join(data['required_skills'])
+
+    # Database connection handling
     try:
+        conn = get_connection()
+        if not conn:
+            raise Exception("Database connection failed")
+
         with conn.cursor() as cursor:
             # Set default value for is_full if not provided
             is_full = data.get('is_full', False)  # Default to False if not included
 
+            # Insert event into the database
             cursor.execute("""
                 INSERT INTO events (name, start_date, end_date, description, urgency_level, required_skills, capacity, is_full)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
             """, (data['name'], data['start_date'], data['end_date'], data['description'], 
-                  data['urgency_level'], data['required_skills'], data['capacity'], is_full))  # Use is_full here
+                  urgency_level, required_skills, data['capacity'], is_full))
 
             event_id = cursor.fetchone()[0]
             conn.commit()
             return jsonify({"id": event_id, "message": "Event created successfully"}), 201
+
     except Exception as e:
-        conn.rollback()
-        return jsonify({"message": str(e)}), 500
+        if conn:
+            conn.rollback()
+        return jsonify({"message": f"Database error: {str(e)}"}), 500
+
     finally:
-        conn.close()
+        if conn:
+            conn.close()
+
+
+@app.route('/report/volunteers', methods=['GET'])
+def get_volunteer_report():
+    # Fetch volunteer data and their participation history
+    volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
+    volunteer_report = []
+
+    for user, history in volunteers:
+        volunteer_report.append({
+            'username': user.username,
+            'email': user.email,
+            'location': user.location,
+            'skills': user.skills,
+            'participated_events': [history.event_id for history in history]
+        })
+
+    return jsonify(volunteer_report)
+
+
+@app.route('/report/events', methods=['GET'])
+def get_event_report():
+    # Fetch event details and volunteer assignments
+    events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
+    event_report = []
+
+    for event, match in events:
+        event_report.append({
+            'event_name': event.name,
+            'event_date': event.date,
+            'volunteers_assigned': [match.user_id for match in match]
+        })
+
+    return jsonify(event_report)
+
+
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -269,6 +328,9 @@ def signup():
     email = data.get('email')
     password = data.get('password')
     conn = get_connection()
+
+   
+
     cur = conn.cursor()
 
     cur.execute("SELECT * FROM users WHERE username = %s", (username,))
@@ -277,13 +339,15 @@ def signup():
         conn.close()
         return jsonify({"message": "Username already exists"}), 400
 
+    # Hash the password using bcrypt (this returns a byte string)
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
     cur.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)", 
                 (username, hashed_password, email))
     conn.commit()
     cur.close()
     conn.close()
-    
+
     return jsonify({"message": "User created successfully"}), 201
 
 @app.route('/api/login', methods=['POST'])
@@ -295,7 +359,6 @@ def login():
     cur = conn.cursor(cursor_factory=extras.DictCursor)
 
     try:
-
         cur.execute("SELECT username, password, id, is_admin FROM users WHERE username = %s", (username,))
         user_record = cur.fetchone()
 
@@ -319,6 +382,8 @@ def login():
     finally:
         cur.close()
         conn.close()
+
+
 
 
 @app.route('/api/event_status', methods = ['POST'])
