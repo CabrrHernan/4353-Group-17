@@ -31,7 +31,7 @@ const Menu = ({ authState, setAuthState }) => {
         </>
       )}
 
-      <h2 className="menu-item" onClick={() => handleLogout}>Log Out</h2>
+      <h2 className="menu-item" onClick={handleLogout}>Log Out</h2>
     </nav>
   );
 };
