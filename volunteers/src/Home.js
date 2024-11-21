@@ -14,9 +14,7 @@ const instance = axios.create({
 });
 
 
-function Messages(){
-    const auth = JSON.parse(localStorage.getItem('authState'));
-    const user = auth.username
+function Messages({user}){
     const [messages, setMessages] = useState([]);
     useEffect(()=>{
         axios.get('/api/messages', {
@@ -102,9 +100,8 @@ function Messages(){
     );
 };
 
-function Events(){
-    const auth = JSON.parse(localStorage.getItem('authState'));
-    const user = auth.username
+function Events({user}){
+    
     const [events, setEvents] = useState([]);
     useEffect(() =>{
         axios.get('/api/user_events', {
@@ -201,16 +198,16 @@ function Events(){
 }
 
 function Home({ setAuthState, authState  }) {
-    const user = authState?.username;
+  const user = authState?.username || 'Guest';
     return(
         <div className = "home">
       <Menu setAuthState={setAuthState} />
             <div  className="widget-container">
-                <Events />
+                <Events user = {user}/>
     
-                <Messages />
+                <Messages user = {user}/>
 
-                <Profile />
+                <Profile user = {user}/>
             </div>
             <footer className ="foot">
                 <p>

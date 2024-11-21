@@ -9,9 +9,7 @@ import axios from 'axios';
 
 
 
-const Profile = () =>{
-    const auth = JSON.parse(localStorage.getItem('authState'));
-    const user = auth.username
+const Profile = ({user}) =>{
     const [isEditing, setIsEditing] = useState(false);
     const [userProfile, setUserProfile] = useState({
       pic: default_image,

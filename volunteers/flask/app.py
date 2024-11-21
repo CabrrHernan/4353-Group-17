@@ -14,14 +14,13 @@ CORS(app)
 
 
 DATABASE_CONFIG = {
-    "host": 'volunteers.clscceyqorgh.us-east-2.rds.amazonaws.com',
+    "host": 'localhost',
     "user": "postgres",
     "port": 5432,
-    "dbname": "volunteers",
-    "password": "Coogs4life!"
+    "dbname": "4353",
+    "password": "4353"
 }
 
-'''
 try:
     conn = psycopg2.connect(**DATABASE_CONFIG)
     print("Connection successful!")
@@ -65,7 +64,7 @@ def rehash_user_passwords():
     finally:
         cursor.close()
         conn.close()
-'''
+
 def is_admin(username):
     return username == 'admin'
 
@@ -340,7 +339,7 @@ def signup():
         conn.close()
         return jsonify({"message": "Username already exists"}), 400
 
-
+    # Hash the password using bcrypt (this returns a byte string)
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     cur.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)", 
@@ -488,7 +487,7 @@ def user_events():
 def get_profile():
    
     user = request.args['user']
-    
+
     if not user:
         print('No user ID')
         return jsonify({"message": "User ID is required"}), 400
