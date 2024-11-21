@@ -5,23 +5,14 @@ import { useEffect } from 'react';
 const Menu = ({ authState, setAuthState }) => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedAuthState = localStorage.getItem('authState');
-    if (storedAuthState) {
-      const parsedAuthState = JSON.parse(storedAuthState);
-      console.log('Menu authState:', parsedAuthState); // Debugging
-      setAuthState(parsedAuthState);
-    }
-  }, [setAuthState]);
-
   const handleLogout = () => {
     localStorage.removeItem('authState');
     setAuthState({ isLoggedIn: false, username: '', isAdmin: false });
     navigate('/login');
   };
-  const auth = JSON.parse(localStorage.getItem('authState'));
-  const username = auth.username || "Guest";
-  const isAdmin = authState?.isAdmin || false;
+  
+  const username = authState.username || "Guest";
+  const isAdmin = authState.isAdmin || false;
 
   return (
     <nav className="menu">
@@ -40,7 +31,7 @@ const Menu = ({ authState, setAuthState }) => {
         </>
       )}
 
-      <h2 className="menu-item" onClick={handleLogout}>Log Out</h2>
+      <h2 className="menu-item" onClick={() => handleLogout}>Log Out</h2>
     </nav>
   );
 };

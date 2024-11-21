@@ -13,17 +13,18 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 function App() {
-  const [authState, setAuthState] = useState({ isLoggedIn: false, username: '', isAdmin: false });
-
+  const [authState, setAuthState] = useState({'isLoggedIn':false});
+  
   useEffect(() => {
-    const storedAuthState = localStorage.getItem('authState');
-    if (storedAuthState) {
-      const parsedAuthState = JSON.parse(storedAuthState);
-      console.log('App authState:', parsedAuthState); // Debugging
-      setAuthState(parsedAuthState);
+    
+    console.log(authState) //debugger
+    if (authState.isLoggedIn) {
+        localStorage.setItem('username',authState.username);
+        localStorage.setItem('id',authState.id);
+        localStorage.setItem('is_admin', authState.is_admin);
+        localStorage.setItem('isLoggedIn', authState.isLoggedIn);
     }
-  }, []);
-
+  }, [authState]);
 
   
   return (
@@ -36,14 +37,14 @@ function App() {
 function AppContent({ authState, setAuthState }) {
   const location = useLocation();
   const hideMenuOnRoutes = ['/login', '/signup'];
-
+  console.log("app content", authState); //debug
   return (
     <div className="App">
       {!hideMenuOnRoutes.includes(location.pathname) && authState.isLoggedIn && (
         <Menu setAuthState={setAuthState} authState={authState} />
       )}
       <Routes>
-      <Route path="/" element={authState.isLoggedIn ? <Home setAuthState={setAuthState} user={authState.username} /> : <Navigate to="/login" />} />
+      <Route path="/" element={authState.isLoggedIn ? <Home authState = {authState} /> : <Navigate to="/login" />} />
       <Route path="/Volunteer Matching Form" element={authState.isLoggedIn  ? <VolunteerMatchingForm /> : <Navigate to="/" />} />
       <Route path="/Event Management Form" element={authState.isLoggedIn  ? <EventManagementForm /> : <Navigate to="/" />} />
       <Route path="/Notifications" element={authState.isLoggedIn ? <h1>Notifications</h1> : <Navigate to="/login" />} />

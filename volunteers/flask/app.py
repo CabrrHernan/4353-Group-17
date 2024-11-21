@@ -15,57 +15,12 @@ CORS(app)
 
 DATABASE_CONFIG = {
     "host": 'volunteers.clscceyqorgh.us-east-2.rds.amazonaws.com',
-    "user": "postgres",
+    "user": 'postgres',
     "port": 5432,
-    "dbname": "volunteers",
-    "password": "Coogs4life!"
+    "dbname": 'volunteers',
+    "password": 'Coogs4life!'
 }
 
-'''
-try:
-    conn = psycopg2.connect(**DATABASE_CONFIG)
-    print("Connection successful!")
-    conn.close()
-except psycopg2.OperationalError as e:
-    print(f"Error connecting to the database: {e}")
-
-password = "your_password_here"
-stored_hash = "$2b$12$wKJwlvDiUqR5ahcIY2NYMuFa1fy5rkfFwZHsxL4zz3mYqOd9ZBzPa"  # example hash
-
-if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
-    print("23rtr32")
-else:
-    print("Password does not match")
-
-def rehash_user_passwords():
-    # Get the database connection
-    conn = get_connection()
-    if not conn:
-        return jsonify({"message": "Database connection failed"}), 500
-
-    cursor = conn.cursor()
-    try:
-        # Select users who may need password rehashing
-        cursor.execute("SELECT id, password FROM users")
-        users = cursor.fetchall()
-
-        for user in users:
-            # Check if the password is in the old format (string) and needs rehashing
-            if isinstance(user[1], str):  # Check if password is a plain string
-                hashed_password = bcrypt.hashpw(user[1].encode('utf-8'), bcrypt.gensalt())  # Rehash the password
-                cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, user[0]))
-                conn.commit()  # Commit the changes
-                print(f"Password for user {user[0]} rehashed.")
-
-        return jsonify({"message": "Passwords rehashed successfully!"}), 200
-
-    except Exception as e:
-        print(f"Error rehashing passwords: {e}")
-        return jsonify({"message": "Error rehashing passwords"}), 500
-    finally:
-        cursor.close()
-        conn.close()
-'''
 def is_admin(username):
     return username == 'admin'
 
@@ -375,6 +330,7 @@ def login():
             'username': username,
             'id': user_record['id'],
             'is_admin': user_record['is_admin'],
+            'isLoggedIn': True,
             'exp': datetime.now(timezone.utc) + timedelta(hours=1)
         }, SECRET_KEY, algorithm='HS256')
 
@@ -486,7 +442,6 @@ def user_events():
 
 @app.route('/api/get_profile', methods=['GET'])
 def get_profile():
-   
     user = request.args['user']
     
     if not user:
