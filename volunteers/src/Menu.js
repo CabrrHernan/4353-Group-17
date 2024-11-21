@@ -19,8 +19,8 @@ const Menu = ({ authState, setAuthState }) => {
     setAuthState({ isLoggedIn: false, username: '', isAdmin: false });
     navigate('/login');
   };
-  const auth = JSON.parse(localStorage.getItem('authState'));
-  const username = auth.username || "Guest";
+
+  const username = authState?.username || 'Guest';
   const isAdmin = authState?.isAdmin || false;
 
   return (

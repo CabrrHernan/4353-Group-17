@@ -22,7 +22,7 @@ function Login({setAuthState}) {
         const data = await response.json();
 
         if (response.ok) {
-          const { token, username,is_admin } = data;
+          const { token, is_admin } = data;
           localStorage.setItem('authToken', token);
           setAuthState({ isLoggedIn: true, username, isAdmin: is_admin });
           if (is_admin) {
