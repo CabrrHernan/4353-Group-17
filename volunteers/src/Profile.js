@@ -9,36 +9,43 @@ import axios from 'axios';
 
 
 
-const Profile = () =>{
-    const auth = JSON.parse(localStorage.getItem('authState'));
-    const user = auth.username
-    const [isEditing, setIsEditing] = useState(false);
-    const [userProfile, setUserProfile] = useState({
-      pic: default_image,
-      userName: "name",
-      fullName: 'null',
-      email:'null',
-      address1: 'null',
-      city: 'null',
-      state: 'null',
-      zip: 'null',
-      skills: ['null'],
-      preferences: 'None',
-      availability: [],
-    },[]);
+function Profile({authState}){
+      const username = authState.username;
+      console.log("profile", username);
+      const [isEditing, setIsEditing] = useState(false);
+      const [userProfile, setUserProfile] = useState({
+        pic: default_image,
+        userName: "name",
+        fullName: 'null',
+        email:'null',
+        address1: 'null',
+        city: 'null',
+        state: 'null',
+        zip: 'null',
+        skills: ['null'],
+        preferences: 'None',
+        availability: [],
+      },[]);
 
-      useEffect(()=>{
+      useEffect(() => {
         axios.get('/api/get_profile', {
           params: {
-            user: user
-        }
-      }).then(response => {
-          setUserProfile(response.data);
+            user: username  
+          },
+          headers: {
+            'Content-Type': 'application/json'
+          }
         })
-      .catch(error => {
-        console.error('There was an error fetching profile data', error);
-      });
-    },[]);
+        .then(response => {
+          setUserProfile(response.data);
+          
+        })
+        .catch(error => {
+          console.error('There was an error fetching profile data', error);
+        });
+      }, [username]);
+      
+    
 
     const handleChange = (e) =>{
       console.log(e);
@@ -68,7 +75,7 @@ const Profile = () =>{
       console.log(userProfile)
       e.preventDefault();
         axios.post('/api/update_profile', 
-          {'data':userProfile, 'user': user})
+          {'data':userProfile, 'user': username})
         .then((response) => {
           setIsEditing(false);
           console.log(response.data.message);
@@ -95,7 +102,7 @@ const Profile = () =>{
                 type="text"
                 name="userName"
                 maxLength="50"
-                value={userProfile.userName}
+                value={userProfile.userName || 'Null'}
                 onChange={handleChange}
                 disabled= {true}
                 />
@@ -105,7 +112,7 @@ const Profile = () =>{
                 type="text"
                 name="fullName"
                 maxLength="50"
-                value={userProfile.fullName}
+                value={userProfile.fullName || 'Null'}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
@@ -115,7 +122,7 @@ const Profile = () =>{
                 type="text"
                 name="email"
                 maxLength="50"
-                value={userProfile.email}
+                value={userProfile.email || 'Null'}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
@@ -125,7 +132,7 @@ const Profile = () =>{
                 type="text"
                 name="address1"
                 maxLength="100"
-                value={userProfile.address1}
+                value={userProfile.address1 || 'Null'}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
@@ -136,13 +143,13 @@ const Profile = () =>{
                 type="text"
                 name="city"
                 maxLength="100"
-                value={userProfile.city}
+                value={userProfile.city || 'Null'}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
         
                 <label>State</label>
-                <select name="state" value={userProfile.state} onChange={handleChange} disabled={!isEditing}>
+                <select name="state" value={userProfile.state || 'Null'} onChange={handleChange} disabled={!isEditing}>
                 {states.map((state, index) => (
                     <option key={index} value={state}>
                     {state}
@@ -156,13 +163,13 @@ const Profile = () =>{
                 name="zip"
                 maxLength="9"
                 minLength="5"
-                value={userProfile.zip}
+                value={userProfile.zip || 'Null'}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
 
                 <label>Skills</label>
-                <select name="skills" multiple value={userProfile.skills} onChange = {handleMultiSelectChange} disabled={!isEditing}>
+                <select name="skills" multiple value={userProfile.skills || 'Null'} onChange = {handleMultiSelectChange} disabled={!isEditing}>
                 {skillsOptions.map((skill, index) => (
                     <option key={index} value={skill}>
                     {skill}
@@ -178,7 +185,7 @@ const Profile = () =>{
                   <DatePicker
                     name="availability"
                     multiple
-                    value={userProfile.availability}
+                    value={userProfile.availability || 'Null'}
                     onChange={changeDate}
                   />
                 ) : (

@@ -1,12 +1,14 @@
 import './Login.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {jwtDecode} from 'jwt-decode';
+
 
 function Login({setAuthState}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     if (username && password) {
@@ -16,21 +18,23 @@ function Login({setAuthState}) {
           headers: {
             'Content-Type': 'application/json',
           },
+          
           body: JSON.stringify({ username, password }),
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          const { token, username,is_admin } = data;
-          localStorage.setItem('authToken', token);
-          setAuthState({ isLoggedIn: true, username, isAdmin: is_admin });
-          if (is_admin) {
+          console.log(jwtDecode(data.token));
+          setAuthState(jwtDecode(data.token));
+          
+          if (data.is_admin) {
             navigate('/admin');
           } else {
             navigate('/');
           }
-        } else {
+       }
+      else {
           alert(data.message || 'Invalid username or password.');
         }
       } catch (error) {

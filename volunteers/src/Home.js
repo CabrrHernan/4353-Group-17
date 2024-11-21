@@ -8,15 +8,10 @@ import {format} from 'date-fns';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// Explicitly setting Axios to use the xhr adapter for browser environments.
-const instance = axios.create({
-  adapter: axios.defaults.adapter,
-});
 
 
-function Messages(){
-    const auth = JSON.parse(localStorage.getItem('authState'));
-    const user = auth.username
+function Messages({authState}){
+    const user = authState.username;
     const [messages, setMessages] = useState([]);
     useEffect(()=>{
         axios.get('/api/messages', {
@@ -30,7 +25,7 @@ function Messages(){
       .catch(error => {
         console.error('There was an error fetching messages', error);
       });
-    },[]);
+    },[user]);
 
     const [filter, setFilter] = useState(false); 
 
@@ -102,9 +97,9 @@ function Messages(){
     );
 };
 
-function Events(){
-    const auth = JSON.parse(localStorage.getItem('authState'));
-    const user = auth.username
+function Events({authState}){
+
+    const user = authState.username;
     const [events, setEvents] = useState([]);
     useEffect(() =>{
         axios.get('/api/user_events', {
@@ -118,7 +113,7 @@ function Events(){
       .catch(error => {
         console.error('There was an error fetching the events!', error);
       });
-  }, []);
+  }, [user]);
 
 
 
@@ -200,17 +195,17 @@ function Events(){
     )
 }
 
-function Home({ setAuthState, authState  }) {
-    const user = authState?.username;
+function Home({ authState  }) {
+
     return(
         <div className = "home">
-      <Menu setAuthState={setAuthState} />
+      <Menu authState={authState} />
             <div  className="widget-container">
-                <Events />
+                <Events authState = {authState}/>
     
-                <Messages />
+                <Messages authState = {authState} />
 
-                <Profile />
+                <Profile authState = {authState}/>
             </div>
             <footer className ="foot">
                 <p>
