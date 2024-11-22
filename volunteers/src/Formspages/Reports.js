@@ -17,12 +17,7 @@ const Reports = () => {
     // Add more volunteers here...
   ];
 
-  const dummyEventData = [
-    { event_name: 'Event1', event_date: '2024-12-01', volunteers_assigned: ['john_doe', 'jane_smith'] },
-    { event_name: 'Event2', event_date: '2024-12-05', volunteers_assigned: ['john_doe'] },
-    { event_name: 'Event3', event_date: '2024-12-10', volunteers_assigned: ['jane_smith'] },
-    // Add more events here...
-  ];
+  
 
   // Pagination logic for volunteers
   const indexOfLastVolunteer = currentPage * volunteersPerPage;
@@ -38,12 +33,29 @@ const Reports = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   useEffect(() => {
-    console.log('Fetching data...');
-    // Simulating API data fetching
-    setVolunteerReport(dummyVolunteerData);
-    setEventReport(dummyEventData);
-    setLoading(false);
+    const fetchEventReport = async () => {
+      try {
+        setLoading(true); // Start loading
+        const response = await fetch('http://127.0.0.1:5000/report/events?format=json');
+        if (!response.ok) {
+          throw new Error('Failed to fetch event report');
+        }
+        const data = await response.json();
+        setEventReport(data); // Set the fetched data
+        setVolunteerReport(dummyVolunteerData); // Use dummy volunteer data
+        setLoading(false); // Stop loading
+      } catch (err) {
+        console.error('Error fetching event report:', err);
+        setError('Failed to load event report');
+        setLoading(false);
+      }
+    };
+  
+    fetchEventReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  
+  
 
   // If still loading, show loading text
   if (loading) {
