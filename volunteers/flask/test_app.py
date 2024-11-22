@@ -41,21 +41,27 @@ class TestProfileAndVolunteerHistory(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Profile updated successfully', response.data)
 
+
     # Test for updating profile with invalid data (missing fields)
     def test_update_profile_invalid(self):
         invalid_profile_data = {
-            'user_id': 1,  # Include user_id for testing
-            'fullName': '',  # Empty full name (should fail validation)
-            'address': '123 Main St',
-            'city': 'Houston',
-            'state': 'TX',
-            'zip': '77004',
-            'skills': '',
-            'availability': []
+            'data': {  # Wrapped in a "data" key
+                'fullName': '',  # Empty full name (should fail validation)
+                'address': '123 Main St',
+                'city': 'Houston',
+                'state': 'TX',
+                'zip': '77004',
+                'skills': '',
+                'preferences': '',
+                'availability': []
+            },
+            'user': 'testuser'  # Add "user" field
         }
+
         response = self.app.post('/api/update_profile', json=invalid_profile_data)
         self.assertEqual(response.status_code, 400)
         self.assertIn(b'Full name is required', response.data)
+
 
     # Test for getting volunteer history with a valid user_id
     def test_get_volunteer_history(self):
