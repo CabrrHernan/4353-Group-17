@@ -366,11 +366,36 @@ def event_status():
 
     return(jsonify({"message":"Success"}))
 
-@app.route('/api/read_message', methods = ['POST'])
+@app.route('/api/read_message', methods=['POST'])
 def read_message():
-    id = request.get_json()
-    print(id)
-    return(jsonify({"message":"Success"}))
+    data = request.get_json() 
+    message_id = data['id']
+    print(message_id)
+
+    if not message_id:
+        return jsonify({"message": "Message ID is required."}), 400
+
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        sql = "UPDATE notifications SET is_read = %s WHERE id = %s"
+        cursor.execute(sql, (True, message_id))
+        
+        if cursor.rowcount == 0:
+            return jsonify({"message": "No message found with the given ID."}), 404
+        
+        conn.commit()
+        return jsonify({"message": "Message marked as read successfully."}), 200
+    except Exception as e:
+        print("Error updating message:", e)
+        conn.rollback()
+        return jsonify({"message": "Error marking message as read."}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/api/messages', methods = ['GET'])
 def get_messages():
@@ -380,7 +405,7 @@ def get_messages():
         return jsonify({"message": "Database connection failed"}), 500
     try:
         cur = conn.cursor()
-        cur.execute("""SELECT u.id as user_id, n.message, n.is_read, n.type, n.time
+        cur.execute("""SELECT u.id as user_id, n.id, n.message, n.is_read, n.type, n.time
                     FROM users u
                     JOIN notifications n ON u.id = n.user_id
                     WHERE u.username = %s""", (user,)
@@ -390,12 +415,11 @@ def get_messages():
         messages = list()
         while(msg):
             msgObj = {
-                'id':msg[0], 'content':msg[1], 'read':msg[2], 'title':msg[3], 'time':msg[4]
+                'id':msg[1], 'content':msg[2], 'read':msg[3], 'title':msg[4], 'time':msg[5]
             }
             messages.append(msgObj)
             msg = cur.fetchone()
 
-        print(messages)
         return jsonify(messages), 200
     except Exception as e:
         print("Error fetching messages:", e)
