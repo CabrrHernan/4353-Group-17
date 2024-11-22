@@ -13,6 +13,9 @@ import axios from 'axios';
 function Messages({authState}){
     const user = authState.username;
     const [messages, setMessages] = useState([]);
+    const [filter, setFilter] = useState(false); 
+    const [filterMessages, setFilterMessages] = useState([]);
+
     useEffect(()=>{
         axios.get('/api/messages', {
           params: {
@@ -27,14 +30,11 @@ function Messages({authState}){
       });
     },[user]);
 
-    const [filter, setFilter] = useState(false); 
-
-    const filterMessages =  messages.filter(message => message.read === filter);
-
     
+    
+  
 
-
-    const handleRead = async (id) => {
+    const handleRead = (id) => {
       console.log(id);
       const updatedMessages = messages.map(msg => {
         if (msg.id === id) {
@@ -44,17 +44,18 @@ function Messages({authState}){
       });
       setMessages(updatedMessages);
       axios.post("/api/read_message", 
-        {'messages': messages, 'user': user})
+        {'id':id})
         .then(response => {
           console.log(response.data); 
         }).catch(error => {
           console.error('There was an error updating messages', error);
         });
-
     };
 
+    useEffect(() => {
+      setFilterMessages(messages.filter((message) => message.read === filter));
+    }, [messages, filter]);
     
-
     return (
         <div className = "widget">
             <h2>Notifications</h2>
@@ -79,8 +80,8 @@ function Messages({authState}){
                 {
                 
                 filterMessages.map((msg) => (
-                    <Toast className = "message-container" key={msg.id} >
-                        <Toast.Header className="message-header"  closeButton = {msg.read === false} onClick= {() => msg.read === false && handleRead(msg.id)}>
+                    <Toast className = "message-container" key={msg.id} onClose={(e) => {e.preventDefault(); handleRead(msg.id)}}>
+                        <Toast.Header className="message-header"  closeButton = {msg.read === false}>
                         
                             <strong className="message-title">{msg.title}</strong>
                             <small className="message-time">{msg.time}</small>
