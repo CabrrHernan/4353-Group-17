@@ -7,6 +7,9 @@ import psycopg2
 from psycopg2 import OperationalError, extras
 from datetime import datetime, timedelta
 from models import db, User, Event, VolunteerHistory, EventMatch
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from datetime import datetime, timedelta, timezone
 app = Flask(__name__)
@@ -35,6 +38,24 @@ def get_connection(retries=3, delay=2):
             time.sleep(delay)
     print("Failed to connect to the database after multiple attempts.")
     return None
+
+def send_verification_email(email, token):
+    sender_email = "volunteers345@gmail.com"
+    receiver_email = email
+    password = "qjem ebrp mlqe zwub"
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Email Verification"
+    message["From"] = sender_email
+    message["To"] = receiver_email
+
+    text = f"Please verify your email by clicking the following link: http://localhost:3000/verify-email?token={token}"
+    part = MIMEText(text, "plain")
+    message.attach(part)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message.as_string())
 
 
 @app.route('/index')
@@ -315,14 +336,38 @@ def signup():
 
 
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    verification_token = jwt.encode({'email': email}, SECRET_KEY, algorithm='HS256')
 
-    cur.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)", 
-                (username, hashed_password, email))
+    cur.execute("INSERT INTO users (username, password, email, verification_token, is_verified) VALUES (%s, %s, %s, %s, %s)", 
+                (username, hashed_password, email, verification_token, False))
     conn.commit()
     cur.close()
     conn.close()
 
-    return jsonify({"message": "User created successfully"}), 201
+    send_verification_email(email, verification_token)
+
+    return jsonify({"message": "User created successfully. Please verify your email."}), 201
+
+@app.route('/api/verify-email', methods=['GET'])
+def verify_email():
+    token = request.args.get('token')
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        email = data['email']
+
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("UPDATE users SET is_verified = %s WHERE email = %s", (True, email))
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "Email verified successfully"}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Verification token expired"}), 400
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Invalid verification token"}), 400
 
 @app.route('/api/login', methods=['POST'])
 def login():

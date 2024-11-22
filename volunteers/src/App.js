@@ -9,6 +9,7 @@ import SignUp from './SignUp';
 import Profile from './Profile'; 
 import Admin from './Admin';
 import Report from './Formspages/Reports';
+import VerifyEmail from './VerifyEmail';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
@@ -36,7 +37,7 @@ function App() {
 
 function AppContent({ authState, setAuthState }) {
   const location = useLocation();
-  const hideMenuOnRoutes = ['/login', '/signup'];
+  const hideMenuOnRoutes = ['/login', '/signup', '/verify-email'];
   console.log("app content", authState); //debug
   return (
     <div className="App">
@@ -54,6 +55,7 @@ function AppContent({ authState, setAuthState }) {
       <Route path="/volunteer-history" element={authState.isLoggedIn ? <VolunteerHistory /> : <Navigate to="/login" />} />
       <Route path="/Reports" element={authState.isLoggedIn  ? <Report /> : <Navigate to="/" />} />
       <Route path="/admin" element={authState.isLoggedIn && authState.isAdmin ? <Admin /> : <Navigate to="/" />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
     </Routes>
 
     </div>
