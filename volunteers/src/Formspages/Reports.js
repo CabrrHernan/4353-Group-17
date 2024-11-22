@@ -10,12 +10,6 @@ const Reports = () => {
   const [volunteersPerPage, setVolunteersPerPage] = useState(10);
   const [eventsPerPage, setEventsPerPage] = useState(10);
 
-  // Dummy Data for Volunteers (You can replace this with the actual API data later)
-  const dummyVolunteerData = [
-    { username: 'john_doe', email: 'john@example.com', location: 'Tokyo', skills: 'Programming, Leadership', participated_events: ['Event1', 'Event2'] },
-    { username: 'jane_smith', email: 'jane@example.com', location: 'Osaka', skills: 'Design, Communication', participated_events: ['Event3', 'Event4'] },
-  ];
-
   // Pagination logic for volunteers
   const indexOfLastVolunteer = currentPage * volunteersPerPage;
   const indexOfFirstVolunteer = indexOfLastVolunteer - volunteersPerPage;
@@ -29,61 +23,66 @@ const Reports = () => {
   // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const downloadReport = async (format) => {
+  // Fetch reports from APIs
+  const fetchReports = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/report/events?format=${format}`);
-      
+      setLoading(true);
+      setError('');
+
+      const [volunteerResponse, eventResponse] = await Promise.all([
+        fetch('http://127.0.0.1:5000/report/volunteers?format=json'),
+        fetch('http://127.0.0.1:5000/report/events?format=json'),
+      ]);
+
+      const volunteerData = await volunteerResponse.json();
+      const eventData = await eventResponse.json();
+
+      if (!volunteerResponse.ok || !eventResponse.ok) {
+        throw new Error('Failed to fetch reports');
+      }
+
+      setVolunteerReport(volunteerData);
+      setEventReport(eventData);
+    } catch (err) {
+      console.error('Error fetching reports:', err);
+      setError('Failed to load reports');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Download reports
+  const downloadReport = async (type, format) => {
+    try {
+      const url = `http://127.0.0.1:5000/report/${type}?format=${format}`;
+      const response = await fetch(url);
+
       if (response.ok) {
         const blob = await response.blob();
-        const fileName = `event_report.${format}`;
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        window.URL.revokeObjectURL(url); // Clean up after download
+        const fileName = `${type}_report.${format}`;
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        link.click();
+        window.URL.revokeObjectURL(downloadUrl);
       } else {
-        throw new Error('Failed to download report');
+        throw new Error(`Failed to download ${type} report`);
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to download report');
+      setError(`Failed to download ${type} report`);
     }
   };
 
   useEffect(() => {
-    const fetchEventReport = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('http://127.0.0.1:5000/report/events?format=json');
-        const data = await response.json();
-        console.log("Fetched Event Data:", data);  // Check data here
-        if (response.ok) {
-          setEventReport(data);  // Set the event report correctly in state
-        } else {
-          throw new Error('Failed to fetch event report');
-        }
-      } catch (err) {
-        console.error('Error fetching event report:', err);
-        setError('Failed to load event report');
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchReports();
+  }, []);
 
-    // Set volunteer data from dummy data
-    setVolunteerReport(dummyVolunteerData);  // This can be replaced with real API data
-
-    // Fetch the event data
-    fetchEventReport();
-  }, []); // This ensures this code runs only once when the component mounts
-
-  // If still loading, show loading text
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  // If there's an error, display it
   if (error) {
     return <div>{error}</div>;
   }
@@ -92,6 +91,7 @@ const Reports = () => {
     <div className="reports-page">
       <h1>Admin Reports</h1>
 
+      {/* Volunteer Report Section */}
       <section>
         <h2>Volunteer Report</h2>
         {volunteerReport.length === 0 ? (
@@ -103,7 +103,6 @@ const Reports = () => {
                 <tr>
                   <th>Username</th>
                   <th>Email</th>
-                  <th>Location</th>
                   <th>Skills</th>
                   <th>Participated Events</th>
                 </tr>
@@ -113,29 +112,30 @@ const Reports = () => {
                   <tr key={index}>
                     <td>{volunteer.username}</td>
                     <td>{volunteer.email}</td>
-                    <td>{volunteer.location}</td>
-                    <td>{volunteer.skills}</td>
-                    <td>{volunteer.participated_events.join(', ')}</td>
+                    <td>{volunteer.skills || 'No Skills'}</td>
+                    <td>{volunteer.participated_events.join(', ') || 'No Events'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-
-            {/* Pagination Controls */}
+            {/* Volunteer Pagination */}
             <div className="pagination-controls">
-              <button 
-                onClick={() => paginate(currentPage - 1)} 
+              <button
+                onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
               >
                 Previous
               </button>
-
-              {Array.from({ length: Math.ceil(volunteerReport.length / volunteersPerPage) }, (_, index) => (
-                <button key={index} onClick={() => paginate(index + 1)}>{index + 1}</button>
-              ))}
-
-              <button 
-                onClick={() => paginate(currentPage + 1)} 
+              {Array.from(
+                { length: Math.ceil(volunteerReport.length / volunteersPerPage) },
+                (_, index) => (
+                  <button key={index} onClick={() => paginate(index + 1)}>
+                    {index + 1}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === Math.ceil(volunteerReport.length / volunteersPerPage)}
               >
                 Next
@@ -143,8 +143,14 @@ const Reports = () => {
             </div>
           </>
         )}
+        {/* Download Volunteer Report */}
+        <div className="download-button">
+          <button onClick={() => downloadReport('volunteers', 'csv')}>Download Volunteer Report (CSV)</button>
+          <button onClick={() => downloadReport('volunteers', 'pdf')}>Download Volunteer Report (PDF)</button>
+        </div>
       </section>
 
+      {/* Event Report Section */}
       <section>
         <h2>Event Report</h2>
         {eventReport.length === 0 ? (
@@ -164,27 +170,29 @@ const Reports = () => {
                   <tr key={index}>
                     <td>{event.name || 'Unknown Event'}</td>
                     <td>{new Date(event.start_date).toLocaleDateString() || 'N/A'}</td>
-                    <td>{event.volunteers_assigned.length > 0 ? event.volunteers_assigned.join(', ') : 'No Volunteers'}</td>
+                    <td>{event.volunteers_assigned.join(', ') || 'No Volunteers'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            
-            {/* Pagination Controls for Events */}
+            {/* Event Pagination */}
             <div className="pagination-controls">
-              <button 
-                onClick={() => paginate(currentPage - 1)} 
+              <button
+                onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
               >
                 Previous
               </button>
-
-              {Array.from({ length: Math.ceil(eventReport.length / eventsPerPage) }, (_, index) => (
-                <button key={index} onClick={() => paginate(index + 1)}>{index + 1}</button>
-              ))}
-
-              <button 
-                onClick={() => paginate(currentPage + 1)} 
+              {Array.from(
+                { length: Math.ceil(eventReport.length / eventsPerPage) },
+                (_, index) => (
+                  <button key={index} onClick={() => paginate(index + 1)}>
+                    {index + 1}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === Math.ceil(eventReport.length / eventsPerPage)}
               >
                 Next
@@ -192,11 +200,10 @@ const Reports = () => {
             </div>
           </>
         )}
-
-        {/* Download Report Button */}
+        {/* Download Event Report */}
         <div className="download-button">
-          <button onClick={() => downloadReport('csv')}>Download Event Report (CSV)</button>
-          <button onClick={() => downloadReport('pdf')}>Download Event Report (PDF)</button>
+          <button onClick={() => downloadReport('events', 'csv')}>Download Event Report (CSV)</button>
+          <button onClick={() => downloadReport('events', 'pdf')}>Download Event Report (PDF)</button>
         </div>
       </section>
     </div>

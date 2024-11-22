@@ -57,30 +57,88 @@ def generate_pdf(data, filename):
 
 @reports.route('/report/volunteers', methods=['GET'])
 def get_volunteer_report():
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
     try:
-        volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
-        volunteer_report = []
-        for user, history in volunteers:
-            events = Event.query.filter(Event.id.in_([h.event_id for h in history])).all()
-            event_names = [event.name for event in events]
-            volunteer_report.append({
-                'username': user.username,
-                'email': user.email,
-                'location': user.location,
-                'skills': user.skills,
-                'participated_events': event_names
-            })
+        print("Querying volunteers and their event history...")  # Debugging output
+        
+        cursor.execute("""
+            SELECT 
+                u.id AS user_id,
+                u.username AS username,
+                u.email AS email,
+                u.skills AS skills,
+                e.name AS event_name
+            FROM 
+                users u
+            LEFT JOIN 
+                volunteer_history vh ON u.id = vh.user_id
+            LEFT JOIN 
+                events e ON vh.event_id = e.id;
+        """)
+
+        volunteer_rows = cursor.fetchall()
+
+        # Print fetched rows for debugging
+        print(f"Fetched volunteer rows: {volunteer_rows}")
+
+        if not volunteer_rows:
+            print("No volunteer-event data found")
+            return jsonify({'error': 'No volunteers or events found'}), 404
+        
+        # Initialize an empty dictionary to store volunteer details
+        volunteers_dict = {}
+
+        for row in volunteer_rows:
+            user_id = row[0]
+            username = row[1]
+            email = row[2]
+            skills = row[3]
+            event_name = row[4]
+
+            # Check if the user already exists in the dictionary
+            if user_id not in volunteers_dict:
+                volunteers_dict[user_id] = {
+                    'id': user_id,
+                    'username': username,
+                    'email': email,
+                    'skills': skills,
+                    'participated_events': []
+                }
+
+            # If there's an event, add it to the list of events for the user
+            if event_name:
+                volunteers_dict[user_id]['participated_events'].append(event_name)
+
+        # Convert the volunteers_dict to a list for the final report
+        volunteer_report = list(volunteers_dict.values())
+
+        # If no volunteers were found, return a 404 error
+        if not volunteer_report:
+            return jsonify({'message': 'No volunteer data available'}), 404
+
+        print("Building response...")
 
         format_type = request.args.get('format', 'json').lower()
         if format_type == 'csv':
+            print("Returning CSV response")
             return generate_csv(volunteer_report, 'volunteer_report.csv')
         elif format_type == 'pdf':
+            print("Returning PDF response")
             return generate_pdf(volunteer_report, 'volunteer_report.pdf')
         else:
+            print("Returning JSON response")
             return jsonify(volunteer_report), 200
+
     except Exception as e:
         print(f"Error fetching volunteer report: {e}")
-        return jsonify({'error': 'Failed to fetch volunteer report'}), 500
+        return jsonify({'error': f'Failed to fetch volunteer report: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @reports.route('/report/events', methods=['GET'])
 def get_event_report():
