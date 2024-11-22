@@ -176,15 +176,13 @@ def get_events():
         cursor.close()
         conn.close()
 
-
 @app.route('/api/create_event', methods=['POST'])
 def create_event():
     data = request.get_json()
 
     # Helper function for field validation
-    def validate_field(data, field, max_length=None, error_message="Invalid field"):
-        value = data.get(field)
-        if not value or (max_length and len(value) > max_length):
+    def validate_field(data, field, max_length, error_message):
+        if not data.get(field) or (max_length and len(data[field]) > max_length):
             return jsonify({"message": error_message}), 400
         return None  # If validation passes
 
@@ -197,32 +195,26 @@ def create_event():
         'location': (200, "Location is required and must be less than 200 characters"),
         'urgency_level': (None, "Urgency level is required"),
         'required_skills': (None, "Required skills are mandatory"),
-        'capacity': (None, "Capacity is required and must be a valid number"),
+        'capacity': (None, "Capacity is required"),
     }
     
-    for field, (max_length, message) in required_fields.items():
-        validation_response = validate_field(data, field, max_length, message)
+    for field, (length, message) in required_fields.items():
+        validation_response = validate_field(data, field, length, message)
         if validation_response:
             return validation_response
 
-    # Validate urgency_level mapping
+   
+
+    required_skills = data['required_skills']
+
+    # Map urgency level to corresponding integer
     urgency_mapping = {"Low": 1, "Medium": 2, "High": 3}
     urgency_level = urgency_mapping.get(data.get('urgency_level', '').capitalize())
     if urgency_level is None:
         return jsonify({"message": "Invalid urgency level. Valid values are 'Low', 'Medium', or 'High'."}), 400
 
-    # Ensure capacity is a valid integer
-    try:
-        capacity = int(data['capacity'])
-        if capacity <= 0:
-            raise ValueError
-    except ValueError:
-        return jsonify({"message": "Capacity must be a positive integer."}), 400
-
-    # Convert required_skills to a comma-separated string
-    required_skills = ",".join(data['required_skills'])
-
     # Database connection handling
+    conn = None
     try:
         conn = get_connection()
         if not conn:
@@ -232,13 +224,13 @@ def create_event():
             # Set default value for is_full if not provided
             is_full = data.get('is_full', False)  # Default to False if not included
 
-            # Insert event into the database (fixed `location` inclusion)
+            # Insert event into the database
             cursor.execute("""
                 INSERT INTO events (name, start_date, end_date, description, urgency_level, required_skills, capacity, is_full, location)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
             """, (
                 data['name'], data['start_date'], data['end_date'], data['description'],
-                urgency_level, required_skills, capacity, is_full, data['location']
+                urgency_level, required_skills, data['capacity'], is_full, data['location']
             ))
 
             event_id = cursor.fetchone()[0]
@@ -248,13 +240,11 @@ def create_event():
     except Exception as e:
         if conn:
             conn.rollback()
-        print(f"Error: {str(e)}")  # Add detailed logging for debugging
         return jsonify({"message": f"Database error: {str(e)}"}), 500
 
     finally:
         if conn:
             conn.close()
-
 
 @app.route('/report/volunteers', methods=['GET'])
 def get_volunteer_report():

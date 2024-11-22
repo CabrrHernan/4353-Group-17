@@ -27,6 +27,10 @@ function EventManagementForm() {
         const selectedOptions = [...e.target.selectedOptions].map(option => option.value);
         setForm(prevForm => ({ ...prevForm, requiredSkills: selectedOptions }));
     };
+    
+
+
+
   
     const handleSubmit = async (e) => {
         e.preventDefault();
