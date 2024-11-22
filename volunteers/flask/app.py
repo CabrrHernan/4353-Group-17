@@ -10,11 +10,13 @@ from models import db, User, Event, VolunteerHistory, EventMatch
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
+from reports import reports
 from datetime import datetime, timedelta, timezone
+
 app = Flask(__name__)
 CORS(app)
 
+app.register_blueprint(reports)
 
 DATABASE_CONFIG = {
     "host": 'volunteers.clscceyqorgh.us-east-2.rds.amazonaws.com',

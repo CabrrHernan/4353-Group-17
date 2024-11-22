@@ -123,3 +123,39 @@ class TestCreateEvent(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+    
+class TestReports(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+        self.app.testing = True
+
+    def test_volunteer_report_json(self):
+        response = self.app.get('/report/volunteers?format=json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'username', response.data)
+
+    def test_event_report_json(self):
+        response = self.app.get('/report/events?format=json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'event_name', response.data)
+
+    def test_volunteer_report_csv(self):
+        response = self.app.get('/report/volunteers?format=csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'text/csv')
+
+    def test_event_report_csv(self):
+        response = self.app.get('/report/events?format=csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'text/csv')
+
+    def test_volunteer_report_pdf(self):
+        response = self.app.get('/report/volunteers?format=pdf')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'application/pdf')
+
+    def test_event_report_pdf(self):
+        response = self.app.get('/report/events?format=pdf')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'application/pdf')
