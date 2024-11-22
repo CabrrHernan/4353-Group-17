@@ -29,6 +29,28 @@ const Reports = () => {
   // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const downloadReport = async (format) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/report/events?format=${format}`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const fileName = `event_report.${format}`;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url); // Clean up after download
+      } else {
+        throw new Error('Failed to download report');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to download report');
+    }
+  };
+
   useEffect(() => {
     const fetchEventReport = async () => {
       try {
@@ -100,7 +122,7 @@ const Reports = () => {
             </table>
 
             {/* Pagination Controls */}
-            <div>
+            <div className="pagination-controls">
               <button 
                 onClick={() => paginate(currentPage - 1)} 
                 disabled={currentPage === 1}
@@ -128,45 +150,53 @@ const Reports = () => {
         {eventReport.length === 0 ? (
           <p>No event data available.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Event Name</th>
-                <th>Event Start Date</th>
-                <th>Volunteers Assigned</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentEvents.map((event, index) => (
-                <tr key={index}>
-                  <td>{event.name || 'Unknown Event'}</td>
-                  <td>{new Date(event.start_date).toLocaleDateString() || 'N/A'}</td>
-                  <td>{event.volunteers_assigned.length > 0 ? event.volunteers_assigned.join(', ') : 'No Volunteers'}</td>
+          <>
+            <table>
+              <thead>
+                <tr>
+                  <th>Event Name</th>
+                  <th>Event Start Date</th>
+                  <th>Volunteers Assigned</th>
                 </tr>
+              </thead>
+              <tbody>
+                {currentEvents.map((event, index) => (
+                  <tr key={index}>
+                    <td>{event.name || 'Unknown Event'}</td>
+                    <td>{new Date(event.start_date).toLocaleDateString() || 'N/A'}</td>
+                    <td>{event.volunteers_assigned.length > 0 ? event.volunteers_assigned.join(', ') : 'No Volunteers'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            {/* Pagination Controls for Events */}
+            <div className="pagination-controls">
+              <button 
+                onClick={() => paginate(currentPage - 1)} 
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: Math.ceil(eventReport.length / eventsPerPage) }, (_, index) => (
+                <button key={index} onClick={() => paginate(index + 1)}>{index + 1}</button>
               ))}
-            </tbody>
-          </table>
+
+              <button 
+                onClick={() => paginate(currentPage + 1)} 
+                disabled={currentPage === Math.ceil(eventReport.length / eventsPerPage)}
+              >
+                Next
+              </button>
+            </div>
+          </>
         )}
 
-        {/* Pagination Controls for Events */}
-        <div>
-          <button 
-            onClick={() => paginate(currentPage - 1)} 
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-
-          {Array.from({ length: Math.ceil(eventReport.length / eventsPerPage) }, (_, index) => (
-            <button key={index} onClick={() => paginate(index + 1)}>{index + 1}</button>
-          ))}
-
-          <button 
-            onClick={() => paginate(currentPage + 1)} 
-            disabled={currentPage === Math.ceil(eventReport.length / eventsPerPage)}
-          >
-            Next
-          </button>
+        {/* Download Report Button */}
+        <div className="download-button">
+          <button onClick={() => downloadReport('csv')}>Download Event Report (CSV)</button>
+          <button onClick={() => downloadReport('pdf')}>Download Event Report (PDF)</button>
         </div>
       </section>
     </div>
