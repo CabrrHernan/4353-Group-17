@@ -1,11 +1,35 @@
 from flask import Blueprint, jsonify, send_file, request
+from flask_cors import CORS
 import csv
+import time
 from io import StringIO, BytesIO
 from reportlab.pdfgen import canvas
+import psycopg2
+from psycopg2 import OperationalError, extras
+
 from models import db, User, Event, VolunteerHistory, EventMatch
 
 reports = Blueprint('reports', __name__)
 
+DATABASE_CONFIG = {
+    "host": 'volunteers.clscceyqorgh.us-east-2.rds.amazonaws.com',
+    "user": 'postgres',
+    "port": 5432,
+    "dbname": 'volunteers',
+    "password": 'Coogs4life!'
+}
+
+def get_connection(retries=3, delay=2):
+    for attempt in range(retries):
+        try:
+            conn = psycopg2.connect(**DATABASE_CONFIG)
+            print("Successfully connected to the database.")
+            return conn
+        except OperationalError as e:
+            print(f"Database connection error on attempt {attempt + 1}: {e}")
+            time.sleep(delay)
+    print("Failed to connect to the database after multiple attempts.")
+    return None
 def generate_csv(data, filename):
     si = StringIO()
     writer = csv.writer(si)
@@ -60,25 +84,82 @@ def get_volunteer_report():
 
 @reports.route('/report/events', methods=['GET'])
 def get_event_report():
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
     try:
-        events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
-        event_report = []
-        for event, match in events:
-            volunteers = User.query.filter(User.id.in_([m.user_id for m in match])).all()
-            volunteer_names = [volunteer.username for volunteer in volunteers]
-            event_report.append({
-                'event_name': event.name,
-                'event_date': event.date,
-                'volunteers_assigned': volunteer_names
-            })
+        print("Querying events and matches...")  # Debugging output
+        
+        cursor.execute("""
+            SELECT 
+                e.id AS event_id,
+                e.name AS event_name,
+                e.start_date,
+                u.username AS volunteer_name
+            FROM 
+                events e
+            LEFT JOIN 
+                event_matches em ON e.id = em.event_id
+            LEFT JOIN 
+                users u ON em.user_id = u.id;
+        """)
+
+        event_rows = cursor.fetchall()
+
+        # Print fetched rows for debugging
+        print(f"Fetched event rows: {event_rows}") 
+        
+        if not event_rows:
+            print("No event-match data found")
+            return jsonify({'error': 'No events or matches found'}), 404
+        
+        # Initialize an empty dictionary to store event details
+        events_dict = {}
+
+        for row in event_rows:
+            event_id = row[0]
+            event_name = row[1]
+            start_date = row[2]
+            volunteer_name = row[3]
+            
+            # Check if the event already exists in the dictionary
+            if event_id not in events_dict:
+                events_dict[event_id] = {
+                    'id': event_id,
+                    'name': event_name,
+                    'start_date': start_date,
+                    'volunteers_assigned': []
+                }
+
+            # If there's a volunteer, add it to the list of volunteers for the event
+            if volunteer_name:
+                events_dict[event_id]['volunteers_assigned'].append(volunteer_name)
+
+        # Convert the events_dict to a list for the final report
+        event_report = list(events_dict.values())
+
+        # If no events were found, return a 404 error
+        if not event_report:
+            return jsonify({'message': 'No event data available'}), 404
+        
+        print("Building response...")
 
         format_type = request.args.get('format', 'json').lower()
         if format_type == 'csv':
+            print("Returning CSV response")
             return generate_csv(event_report, 'event_report.csv')
         elif format_type == 'pdf':
+            print("Returning PDF response")
             return generate_pdf(event_report, 'event_report.pdf')
         else:
+            print("Returning JSON response")
             return jsonify(event_report), 200
+
     except Exception as e:
         print(f"Error fetching event report: {e}")
-        return jsonify({'error': 'Failed to fetch event report'}), 500
+        return jsonify({'error': f'Failed to fetch event report: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        conn.close()
