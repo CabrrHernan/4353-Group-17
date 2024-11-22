@@ -203,9 +203,9 @@ def create_event():
         if validation_response:
             return validation_response
 
-    # Ensure urgency_level is a string and then capitalize
-    urgency_level = str(data.get('urgency_level', '')).strip().capitalize()
-    if urgency_level not in ['Low', 'Medium', 'High']:
+    urgency_mapping = {"Low": 1, "Medium": 2, "High": 3}
+    urgency_level = urgency_mapping.get(data.get('urgency_level', '').capitalize())
+    if urgency_level is None:
         return jsonify({"message": "Invalid urgency level. Valid values are 'Low', 'Medium', or 'High'."}), 400
 
     # Convert required_skills to a comma-separated string

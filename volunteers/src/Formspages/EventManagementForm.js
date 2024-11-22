@@ -154,19 +154,20 @@ function EventManagementForm() {
 
                 {/* Urgency (Dropdown) */}
                 <label>
-                    Urgency:
-                    <select
-                        name="urgency"
-                        value={form.urgency}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select Urgency</option>
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </label>
+    Urgency:
+    <select
+        name="urgency"
+        value={form.urgency}
+        onChange={handleChange}
+        required
+    >
+        <option value="">Select Urgency</option>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+    </select>
+</label>
+
                 <br />
 
                 {/* Event Date (Date Picker) */}
