@@ -14,9 +14,17 @@ from reports import reports
 from datetime import datetime, timedelta, timezone
 
 app = Flask(__name__)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:Coogs4life!@volunteers.clscceyqorgh.us-east-2.rds.amazonaws.com/volunteers"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+
 CORS(app)
 
 app.register_blueprint(reports)
+
+SECRET_KEY = 'your_secret_key'
 
 DATABASE_CONFIG = {
     "host": 'volunteers.clscceyqorgh.us-east-2.rds.amazonaws.com',
@@ -25,6 +33,7 @@ DATABASE_CONFIG = {
     "dbname": 'volunteers',
     "password": 'Coogs4life!'
 }
+
 
 def is_admin(username):
     return username == 'admin'
