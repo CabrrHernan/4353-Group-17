@@ -24,35 +24,44 @@ class TestProfileAndVolunteerHistory(unittest.TestCase):
     # Test for updating profile with valid data
     def test_update_profile_valid(self):
         valid_profile_data = {
-            'user_id': 1,  # Add user_id for updating the profile
-            'fullName': 'Jane Doe',
-            'address': '123 Main St',  # Adjusted field name
-            'city': 'Houston',
-            'state': 'TX',
-            'zip': '77004',
-            'skills': 'run, jump',  # Adjusted to match expected format
-            'preferences': 'Remote',
-            'availability': ['morning']
+            'data': {  # Wrapped in a "data" key
+                'fullName': 'Jane Doe',
+                'address': '123 Main St',
+                'city': 'Houston',
+                'state': 'TX',
+                'zip': '77004',
+                'skills': 'run, jump',
+                'preferences': 'Remote',
+                'availability': ['morning']
+            },
+            'user': 'testuser'  # Add "user" field
         }
+
         response = self.app.post('/api/update_profile', json=valid_profile_data)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Profile updated successfully', response.data)
 
+
     # Test for updating profile with invalid data (missing fields)
     def test_update_profile_invalid(self):
         invalid_profile_data = {
-            'user_id': 1,  # Include user_id for testing
-            'fullName': '',  # Empty full name (should fail validation)
-            'address': '123 Main St',
-            'city': 'Houston',
-            'state': 'TX',
-            'zip': '77004',
-            'skills': '',
-            'availability': []
+            'data': {  # Wrapped in a "data" key
+                'fullName': '',  # Empty full name (should fail validation)
+                'address': '123 Main St',
+                'city': 'Houston',
+                'state': 'TX',
+                'zip': '77004',
+                'skills': '',
+                'preferences': '',
+                'availability': []
+            },
+            'user': 'testuser'  # Add "user" field
         }
+
         response = self.app.post('/api/update_profile', json=invalid_profile_data)
         self.assertEqual(response.status_code, 400)
         self.assertIn(b'Full name is required', response.data)
+
 
     # Test for getting volunteer history with a valid user_id
     def test_get_volunteer_history(self):
@@ -123,3 +132,39 @@ class TestCreateEvent(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+    
+class TestReports(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+        self.app.testing = True
+
+    def test_volunteer_report_json(self):
+        response = self.app.get('/report/volunteers?format=json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'username', response.data)
+
+    def test_event_report_json(self):
+        response = self.app.get('/report/events?format=json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'event_name', response.data)
+
+    def test_volunteer_report_csv(self):
+        response = self.app.get('/report/volunteers?format=csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'text/csv')
+
+    def test_event_report_csv(self):
+        response = self.app.get('/report/events?format=csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'text/csv')
+
+    def test_volunteer_report_pdf(self):
+        response = self.app.get('/report/volunteers?format=pdf')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'application/pdf')
+
+    def test_event_report_pdf(self):
+        response = self.app.get('/report/events?format=pdf')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'application/pdf')
