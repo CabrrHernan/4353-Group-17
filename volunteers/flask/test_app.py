@@ -24,16 +24,19 @@ class TestProfileAndVolunteerHistory(unittest.TestCase):
     # Test for updating profile with valid data
     def test_update_profile_valid(self):
         valid_profile_data = {
-            'user_id': 1,  # Add user_id for updating the profile
-            'fullName': 'Jane Doe',
-            'address': '123 Main St',  # Adjusted field name
-            'city': 'Houston',
-            'state': 'TX',
-            'zip': '77004',
-            'skills': 'run, jump',  # Adjusted to match expected format
-            'preferences': 'Remote',
-            'availability': ['morning']
+            'data': {  # Wrapped in a "data" key
+                'fullName': 'Jane Doe',
+                'address': '123 Main St',
+                'city': 'Houston',
+                'state': 'TX',
+                'zip': '77004',
+                'skills': 'run, jump',
+                'preferences': 'Remote',
+                'availability': ['morning']
+            },
+            'user': 'testuser'  # Add "user" field
         }
+
         response = self.app.post('/api/update_profile', json=valid_profile_data)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Profile updated successfully', response.data)
