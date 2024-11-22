@@ -9,7 +9,8 @@ const VolunteerHistory = () => {
     const [hoursFilter, setHoursFilter] = useState('All');
 
     useEffect(() => {
-        axios.get('/api/volunteer_history')
+        // Replace <user_id> with an actual user_id for testing
+        axios.get('/api/volunteer_history', { params: { user_id: 1 } })
             .then(response => {
                 setHistory(response.data);
             })
@@ -17,6 +18,7 @@ const VolunteerHistory = () => {
                 console.error('Error fetching volunteer history:', error);
             });
     }, []);
+    
 
     // Filter the history based on search and selected filters
     const filteredHistory = history.filter(entry => {
