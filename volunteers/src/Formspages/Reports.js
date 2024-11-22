@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import './Reports.css';
-import { jsPDF } from 'jspdf';
-import Papa from 'papaparse';
 
 const Reports = () => {
   const [volunteerReport, setVolunteerReport] = useState([]);
@@ -12,75 +9,51 @@ const Reports = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [volunteersPerPage, setVolunteersPerPage] = useState(10);
   const [eventsPerPage, setEventsPerPage] = useState(10);
-  
+
+  // Dummy Data
+  const dummyVolunteerData = [
+    { username: 'john_doe', email: 'john@example.com', location: 'Tokyo', skills: 'Programming, Leadership', participated_events: ['Event1', 'Event2'] },
+    { username: 'jane_smith', email: 'jane@example.com', location: 'Osaka', skills: 'Design, Communication', participated_events: ['Event3', 'Event4'] },
+    // Add more volunteers here...
+  ];
+
+  const dummyEventData = [
+    { event_name: 'Event1', event_date: '2024-12-01', volunteers_assigned: ['john_doe', 'jane_smith'] },
+    { event_name: 'Event2', event_date: '2024-12-05', volunteers_assigned: ['john_doe'] },
+    { event_name: 'Event3', event_date: '2024-12-10', volunteers_assigned: ['jane_smith'] },
+    // Add more events here...
+  ];
+
   // Pagination logic for volunteers
   const indexOfLastVolunteer = currentPage * volunteersPerPage;
   const indexOfFirstVolunteer = indexOfLastVolunteer - volunteersPerPage;
   const currentVolunteers = volunteerReport.slice(indexOfFirstVolunteer, indexOfLastVolunteer);
-  
+
   // Pagination logic for events
   const indexOfLastEvent = currentPage * eventsPerPage;
   const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
   const currentEvents = eventReport.slice(indexOfFirstEvent, indexOfLastEvent);
-  
+
   // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   useEffect(() => {
-    // Fetch both volunteer and event reports
-    Promise.all([
-      axios.get('/report/volunteers'),
-      axios.get('/report/events')
-    ])
-      .then(([volunteerResponse, eventResponse]) => {
-        setVolunteerReport(volunteerResponse.data);
-        setEventReport(eventResponse.data);
-      })
-      .catch(error => {
-        setError('Failed to fetch reports.');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    console.log('Fetching data...');
+    // Simulating API data fetching
+    setVolunteerReport(dummyVolunteerData);
+    setEventReport(dummyEventData);
+    setLoading(false);
   }, []);
-  
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
 
-  // Export to PDF
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(12);
-    doc.text('Volunteer Report', 10, 10);
+  // If still loading, show loading text
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-    currentVolunteers.forEach((volunteer, index) => {
-      doc.text(`Username: ${volunteer.username}`, 10, 20 + (index * 10));
-      doc.text(`Email: ${volunteer.email}`, 10, 25 + (index * 10));
-      doc.text(`Location: ${volunteer.location}`, 10, 30 + (index * 10));
-      doc.text(`Skills: ${volunteer.skills}`, 10, 35 + (index * 10));
-      doc.text(`Participated Events: ${volunteer.participated_events.join(', ')}`, 10, 40 + (index * 10));
-    });
-
-    doc.save('volunteer_report.pdf');
-  };
-
-  // Export to CSV
-  const exportToCSV = () => {
-    const volunteersData = currentVolunteers.map(volunteer => ({
-      Username: volunteer.username,
-      Email: volunteer.email,
-      Location: volunteer.location,
-      Skills: volunteer.skills,
-      'Participated Events': volunteer.participated_events.join(', ')
-    }));
-    
-    const csv = Papa.unparse(volunteersData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'volunteer_report.csv';
-    link.click();
-  };
+  // If there's an error, display it
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div className="reports-page">
@@ -88,104 +61,81 @@ const Reports = () => {
 
       <section>
         <h2>Volunteer Report</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Location</th>
-              <th>Skills</th>
-              <th>Participated Events</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentVolunteers.map((volunteer, index) => (
-              <tr key={index}>
-                <td>{volunteer.username}</td>
-                <td>{volunteer.email}</td>
-                <td>{volunteer.location}</td>
-                <td>{volunteer.skills}</td>
-                <td>{volunteer.participated_events.join(', ')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {volunteerReport.length === 0 ? (
+          <p>No volunteer data available.</p>
+        ) : (
+          <>
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Location</th>
+                  <th>Skills</th>
+                  <th>Participated Events</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentVolunteers.map((volunteer, index) => (
+                  <tr key={index}>
+                    <td>{volunteer.username}</td>
+                    <td>{volunteer.email}</td>
+                    <td>{volunteer.location}</td>
+                    <td>{volunteer.skills}</td>
+                    <td>{volunteer.participated_events.join(', ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-        {/* Pagination Controls */}
-        <div>
-          <button 
-            onClick={() => paginate(currentPage - 1)} 
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
+            {/* Pagination Controls */}
+            <div>
+              <button 
+                onClick={() => paginate(currentPage - 1)} 
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
 
-          {Array.from({ length: Math.ceil(volunteerReport.length / volunteersPerPage) }, (_, index) => (
-            <button key={index} onClick={() => paginate(index + 1)}>{index + 1}</button>
-          ))}
+              {Array.from({ length: Math.ceil(volunteerReport.length / volunteersPerPage) }, (_, index) => (
+                <button key={index} onClick={() => paginate(index + 1)}>{index + 1}</button>
+              ))}
 
-          <button 
-            onClick={() => paginate(currentPage + 1)} 
-            disabled={currentPage === Math.ceil(volunteerReport.length / volunteersPerPage)}
-          >
-            Next
-          </button>
-        </div>
-
-        {/* Export Buttons */}
-        <div>
-          <button onClick={exportToPDF}>Export to PDF</button>
-          <button onClick={exportToCSV}>Export to CSV</button>
-        </div>
+              <button 
+                onClick={() => paginate(currentPage + 1)} 
+                disabled={currentPage === Math.ceil(volunteerReport.length / volunteersPerPage)}
+              >
+                Next
+              </button>
+            </div>
+          </>
+        )}
       </section>
 
       <section>
         <h2>Event Report</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Event Name</th>
-              <th>Event Date</th>
-              <th>Volunteers Assigned</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentEvents.map((event, index) => (
-              <tr key={index}>
-                <td>{event.event_name}</td>
-                <td>{event.event_date}</td>
-                <td>{event.volunteers_assigned.join(', ')}</td>
+        {eventReport.length === 0 ? (
+          <p>No event data available.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Event Name</th>
+                <th>Event Date</th>
+                <th>Volunteers Assigned</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Pagination Controls for Events */}
-        <div>
-          <button 
-            onClick={() => paginate(currentPage - 1)} 
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-
-          {Array.from({ length: Math.ceil(eventReport.length / eventsPerPage) }, (_, index) => (
-            <button key={index} onClick={() => paginate(index + 1)}>{index + 1}</button>
-          ))}
-
-          <button 
-            onClick={() => paginate(currentPage + 1)} 
-            disabled={currentPage === Math.ceil(eventReport.length / eventsPerPage)}
-          >
-            Next
-          </button>
-        </div>
-
-        {/* Export Buttons */}
-        <div>
-          <button onClick={exportToPDF}>Export to PDF</button>
-          <button onClick={exportToCSV}>Export to CSV</button>
-        </div>
+            </thead>
+            <tbody>
+              {currentEvents.map((event, index) => (
+                <tr key={index}>
+                  <td>{event.event_name}</td>
+                  <td>{event.event_date}</td>
+                  <td>{event.volunteers_assigned.join(', ')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );

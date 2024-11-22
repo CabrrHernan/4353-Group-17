@@ -23,75 +23,75 @@ function EventManagementForm() {
         setForm(prevForm => ({ ...prevForm, [name]: type === 'checkbox' ? checked : value }));
     };
   
-    const handleMultiSelectChange = (e) => {
-        const selectedOptions = [...e.target.selectedOptions].map(option => option.value);
-        setForm(prevForm => ({ ...prevForm, requiredSkills: selectedOptions }));
-    };
-  
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
-    
-        // Validation
-        if (!form.eventName || !form.eventDescription || !form.location || form.requiredSkills.length === 0 || !form.urgency || !form.eventDate || !form.endDate || !form.capacity) {
-            setError('Please fill in all required fields');
-            return;
-        }
-     
-        // Map urgency to integer
-        const urgencyMapping = {
-            Low: 'Low',
-            Medium: 'Medium',
-            High: 'High',
-        };
-    
-        try {
-            const response = await fetch('http://localhost:5000/api/create_event', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: form.eventName,
-                    description: form.eventDescription,
-                    location: form.location,
-                    required_skills: form.requiredSkills.join(', '),
-                    urgency_level: urgencyMapping[form.urgency],
-                    start_date: form.eventDate,
-                    end_date: form.endDate,
-                    capacity: parseInt(form.capacity, 10),
-                    is_full: form.isFull ? form.isFull : null,
-                }),
-            });
+ const handleMultiSelectChange = (e) => {
+    const selectedOptions = [...e.target.selectedOptions].map(option => option.value);
+    setForm(prevForm => ({ ...prevForm, requiredSkills: selectedOptions }));
+};
 
-            if (response.ok) {
-                const data = await response.json();
-                setSuccess('Event created successfully!');
-                setTimeout(() => {
-                    setSuccess('');
-                    navigate('/events'); // Redirect after success
-                }, 3000);
-                setForm({
-                    eventName: '',
-                    eventDescription: '',
-                    location: '',
-                    requiredSkills: [],
-                    urgency: '',
-                    eventDate: '',
-                    endDate: '',
-                    capacity: '',
-                    isFull: false,
-                });
-            } else {
-                const errorData = await response.json();
-                setError(errorData.message || 'Failed to create event');
-            }
-        } catch (error) {
-            setError('Network error: Could not connect to server');
-        }
+
+
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Validation
+    if (!form.eventName || !form.eventDescription || !form.location || form.requiredSkills.length === 0 || !form.urgency || !form.eventDate || !form.endDate || !form.capacity) {
+        setError('Please fill in all required fields');
+        return;
+    }
+
+    // Map urgency to string
+    const urgencyMapping = {
+        Low: 'Low',
+        Medium: 'Medium',
+        High: 'High',
     };
-  
+
+    try {
+        const response = await fetch('http://localhost:5000/api/create_event', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: form.eventName,
+                description: form.eventDescription,
+                location: form.location,
+                required_skills: form.requiredSkills.join(', '),
+                urgency_level: urgencyMapping[form.urgency],
+                start_date: form.eventDate,
+                end_date: form.endDate,
+                capacity: parseInt(form.capacity, 10),
+                is_full: form.isFull ? form.isFull : null,
+            }),
+        });
+
+        if (response.ok) {
+            setSuccess('Event created successfully!');
+            setForm({
+                eventName: '',
+                eventDescription: '',
+                location: '',
+                requiredSkills: [],
+                urgency: '',
+                eventDate: '',
+                endDate: '',
+                capacity: '',
+                isFull: false,
+            });
+            
+        } else {
+            const errorData = await response.json();
+            setError(errorData.message || 'Failed to create event');
+        }
+    } catch (error) {
+        setError('Network error: Could not connect to server');
+    }
+};
+
+
     return (
         <div className={styles.eventManagementForm}>
             <h1>Event Management Form</h1>
@@ -154,19 +154,20 @@ function EventManagementForm() {
 
                 {/* Urgency (Dropdown) */}
                 <label>
-                    Urgency:
-                    <select
-                        name="urgency"
-                        value={form.urgency}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select Urgency</option>
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </label>
+    Urgency:
+    <select
+        name="urgency"
+        value={form.urgency}
+        onChange={handleChange}
+        required
+    >
+        <option value="">Select Urgency</option>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+    </select>
+</label>
+
                 <br />
 
                 {/* Event Date (Date Picker) */}

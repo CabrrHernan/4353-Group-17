@@ -176,7 +176,6 @@ def get_events():
         cursor.close()
         conn.close()
 
-
 @app.route('/api/create_event', methods=['POST'])
 def create_event():
     data = request.get_json()
@@ -193,25 +192,29 @@ def create_event():
         'start_date': (None, "Start date is required"),
         'end_date': (None, "End date is required"),
         'description': (500, "Description is required and must be less than 500 characters"),
+        'location': (200, "Location is required and must be less than 200 characters"),
         'urgency_level': (None, "Urgency level is required"),
         'required_skills': (None, "Required skills are mandatory"),
         'capacity': (None, "Capacity is required"),
     }
-
+    
     for field, (length, message) in required_fields.items():
         validation_response = validate_field(data, field, length, message)
         if validation_response:
             return validation_response
 
-    # Ensure urgency_level is a string and then capitalize
-    urgency_level = str(data.get('urgency_level', '')).strip().capitalize()
-    if urgency_level not in ['Low', 'Medium', 'High']:
+   
+
+    required_skills = data['required_skills']
+
+    # Map urgency level to corresponding integer
+    urgency_mapping = {"Low": 1, "Medium": 2, "High": 3}
+    urgency_level = urgency_mapping.get(data.get('urgency_level', '').capitalize())
+    if urgency_level is None:
         return jsonify({"message": "Invalid urgency level. Valid values are 'Low', 'Medium', or 'High'."}), 400
 
-    # Convert required_skills to a comma-separated string
-    required_skills = ",".join(data['required_skills'])
-
     # Database connection handling
+    conn = None
     try:
         conn = get_connection()
         if not conn:
@@ -223,10 +226,12 @@ def create_event():
 
             # Insert event into the database
             cursor.execute("""
-                INSERT INTO events (name, start_date, end_date, description, urgency_level, required_skills, capacity, is_full)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
-            """, (data['name'], data['start_date'], data['end_date'], data['description'], 
-                  urgency_level, required_skills, data['capacity'], is_full))
+                INSERT INTO events (name, start_date, end_date, description, urgency_level, required_skills, capacity, is_full, location)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+            """, (
+                data['name'], data['start_date'], data['end_date'], data['description'],
+                urgency_level, required_skills, data['capacity'], is_full, data['location']
+            ))
 
             event_id = cursor.fetchone()[0]
             conn.commit()
@@ -241,40 +246,53 @@ def create_event():
         if conn:
             conn.close()
 
-
 @app.route('/report/volunteers', methods=['GET'])
 def get_volunteer_report():
-    # Fetch volunteer data and their participation history
-    volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
-    volunteer_report = []
+    try:
+        # Query the User and VolunteerHistory models to fetch the data
+        volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
+        
+        volunteer_report = []
+        for user, history in volunteers:
+            # Assuming you need the event names, not just event IDs, you should join with Event
+            events = Event.query.filter(Event.id.in_([h.event_id for h in history])).all()
+            event_names = [event.name for event in events]
+            
+            volunteer_report.append({
+                'username': user.username,
+                'email': user.email,
+                'location': user.location,
+                'skills': user.skills,
+                'participated_events': event_names
+            })
 
-    for user, history in volunteers:
-        volunteer_report.append({
-            'username': user.username,
-            'email': user.email,
-            'location': user.location,
-            'skills': user.skills,
-            'participated_events': [history.event_id for history in history]
-        })
-
-    return jsonify(volunteer_report)
-
+        return jsonify(volunteer_report)
+    except Exception as e:
+        print(f"Error fetching volunteer report: {e}")
+        return jsonify({'error': 'Failed to fetch volunteer report'}), 500
 
 @app.route('/report/events', methods=['GET'])
 def get_event_report():
-    # Fetch event details and volunteer assignments
-    events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
-    event_report = []
+    try:
+        # Query the Event and EventMatch models to fetch the data
+        events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
+        
+        event_report = []
+        for event, match in events:
+            # Get the volunteer details by matching user IDs
+            volunteers = User.query.filter(User.id.in_([m.user_id for m in match])).all()
+            volunteer_names = [volunteer.username for volunteer in volunteers]
+            
+            event_report.append({
+                'event_name': event.name,
+                'event_date': event.date,
+                'volunteers_assigned': volunteer_names
+            })
 
-    for event, match in events:
-        event_report.append({
-            'event_name': event.name,
-            'event_date': event.date,
-            'volunteers_assigned': [match.user_id for match in match]
-        })
-
-    return jsonify(event_report)
-
+        return jsonify(event_report)
+    except Exception as e:
+        print(f"Error fetching event report: {e}")
+        return jsonify({'error': 'Failed to fetch event report'}), 500
 
 
 @app.route('/api/signup', methods=['POST'])
