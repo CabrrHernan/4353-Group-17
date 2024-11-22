@@ -32,6 +32,9 @@ class EventMatch(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
     status = db.Column(db.Enum('pending', 'accepted', 'closed'))
 
+    user = db.relationship('User', backref='event_matches')
+    event = db.relationship('Event', backref='event_matches')
+
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

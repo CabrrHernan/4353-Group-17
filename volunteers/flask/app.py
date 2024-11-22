@@ -278,53 +278,6 @@ def create_event():
         if conn:
             conn.close()
 
-@app.route('/report/volunteers', methods=['GET'])
-def get_volunteer_report():
-    try:
-        # Query the User and VolunteerHistory models to fetch the data
-        volunteers = db.session.query(User, VolunteerHistory).join(VolunteerHistory, User.id == VolunteerHistory.user_id).all()
-        
-        volunteer_report = []
-        for user, history in volunteers:
-            # Assuming you need the event names, not just event IDs, you should join with Event
-            events = Event.query.filter(Event.id.in_([h.event_id for h in history])).all()
-            event_names = [event.name for event in events]
-            
-            volunteer_report.append({
-                'username': user.username,
-                'email': user.email,
-                'location': user.location,
-                'skills': user.skills,
-                'participated_events': event_names
-            })
-
-        return jsonify(volunteer_report)
-    except Exception as e:
-        print(f"Error fetching volunteer report: {e}")
-        return jsonify({'error': 'Failed to fetch volunteer report'}), 500
-
-@app.route('/report/events', methods=['GET'])
-def get_event_report():
-    try:
-        # Query the Event and EventMatch models to fetch the data
-        events = db.session.query(Event, EventMatch).join(EventMatch, Event.id == EventMatch.event_id).all()
-        
-        event_report = []
-        for event, match in events:
-            # Get the volunteer details by matching user IDs
-            volunteers = User.query.filter(User.id.in_([m.user_id for m in match])).all()
-            volunteer_names = [volunteer.username for volunteer in volunteers]
-            
-            event_report.append({
-                'event_name': event.name,
-                'event_date': event.date,
-                'volunteers_assigned': volunteer_names
-            })
-
-        return jsonify(event_report)
-    except Exception as e:
-        print(f"Error fetching event report: {e}")
-        return jsonify({'error': 'Failed to fetch event report'}), 500
 
 
 @app.route('/api/signup', methods=['POST'])
@@ -683,37 +636,6 @@ def get_volunteer_history():
     except Exception as e:
         print("Error fetching volunteer history:", e)
         return jsonify({"message": "Error fetching volunteer history"}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-@app.route('/api/add_volunteer_history', methods=['POST'])
-def add_volunteer_history():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    event_id = data.get('event_id')
-    participation_date = data.get('participation_date', datetime.now())
-    rating = data.get('rating', None)
-
-    if not user_id or not event_id:
-        return jsonify({"message": "User ID and Event ID are required"}), 400
-
-    conn = get_connection()
-    if not conn:
-        return jsonify({"message": "Database connection failed"}), 500
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO volunteer_history (user_id, event_id, participation_date, rating)
-            VALUES (%s, %s, %s, %s)
-        """, (user_id, event_id, participation_date, rating))
-        conn.commit()
-        return jsonify({"message": "Volunteer history added successfully"}), 201
-    except Exception as e:
-        print("Error adding volunteer history:", e)
-        conn.rollback()
-        return jsonify({"message": "Error adding volunteer history"}), 500
     finally:
         cursor.close()
         conn.close()
