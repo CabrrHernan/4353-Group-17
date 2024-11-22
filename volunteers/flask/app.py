@@ -687,6 +687,37 @@ def get_volunteer_history():
         cursor.close()
         conn.close()
 
+@app.route('/api/add_volunteer_history', methods=['POST'])
+def add_volunteer_history():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    event_id = data.get('event_id')
+    participation_date = data.get('participation_date', datetime.now())
+    rating = data.get('rating', None)
+
+    if not user_id or not event_id:
+        return jsonify({"message": "User ID and Event ID are required"}), 400
+
+    conn = get_connection()
+    if not conn:
+        return jsonify({"message": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO volunteer_history (user_id, event_id, participation_date, rating)
+            VALUES (%s, %s, %s, %s)
+        """, (user_id, event_id, participation_date, rating))
+        conn.commit()
+        return jsonify({"message": "Volunteer history added successfully"}), 201
+    except Exception as e:
+        print("Error adding volunteer history:", e)
+        conn.rollback()
+        return jsonify({"message": "Error adding volunteer history"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 
 if __name__ == '__main__':
