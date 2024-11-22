@@ -1,77 +1,104 @@
-/* EventManagementFrom.module.css */
-
 .eventManagementForm {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    margin-top: 50px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin-top: 50px; 
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #f9f9f9;
+  border-radius: 20px; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+  transition: box-shadow 0.3s ease, transform 0.3s ease-in-out; 
+  padding-top: 80px; 
+}
+
+.eventManagementForm:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); 
+  transform: translateY(-5px); 
+}
+
+.eventManagementForm h1 {
+  font-size: 1.6em;
+  color: #333;
+  text-align: center;
+}
+
+.eventManagementForm form {
+  width: 100%;
+}
+
+.eventManagementForm label {
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  display: block;
+  color: #555;
+}
+
+.eventManagementForm input[type="text"],
+.eventManagementForm input[type="date"],
+.eventManagementForm textarea,
+.eventManagementForm select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 10px; 
+  font-size: 1em;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease; 
+}
+
+.eventManagementForm input[type="text"]:focus,
+.eventManagementForm input[type="date"]:focus,
+.eventManagementForm textarea:focus,
+.eventManagementForm select:focus {
+  outline: none;
+  border-color: #8a2be2;
+}
+
+.eventManagementForm textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.eventManagementForm select[multiple] {
+  height: auto;
+}
+
+.eventManagementForm button {
+  width: 100%;
+  padding: 12px;
+  background-color: #8a2be2;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease; 
+}
+
+.eventManagementForm button:hover {
+  background-color: #00ffff; /* Light cyan on hover */
+}
+
+.eventManagementForm button:disabled {
+  background-color: #8a2be2;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0% {
+    text-shadow: 1px 1px 2px #8a2be2, 0 0 10px #8a2be2, 0 0 20px #8a2be2, 0 0 30px #00ffff;
   }
-  
-  .eventManagementForm h1 {
-    font-size: 1.6em;
-    color: #333;
+  50% {
+    text-shadow: 1px 1px 4px #8a2be2, 0 0 15px #8a2be2, 0 0 30px #8a2be2, 0 0 45px #00ffff;
   }
-  
-  .eventManagementForm form {
-    width: 100%;
+  100% {
+    text-shadow: 1px 1px 2px #8a2be2, 0 0 10px #8a2be2, 0 0 20px #8a2be2, 0 0 30px #00ffff;
   }
-  
-  .eventManagementForm label {
-    font-size: 1.1em;
-    margin-bottom: 10px;
-    display: block;
-    color: #555;
-  }
-  
-  .eventManagementForm input[type="text"],
-  .eventManagementForm input[type="date"],
-  .eventManagementForm textarea,
-  .eventManagementForm select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1em;
-    box-sizing: border-box;
-  }
-  
-  .eventManagementForm textarea {
-    height: 100px;
-    resize: vertical;
-  }
-  
-  .eventManagementForm select[multiple] {
-    height: auto;
-  }
-  
-  .eventManagementForm button {
-    width: 100%;
-    padding: 12px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1em;
-    cursor: pointer;
-  }
-  
-  .eventManagementForm button:hover {
-    background-color: #0056b3;
-  }
-  
-  .eventManagementForm button:disabled {
-    background-color: #007BFF;
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  
+}
