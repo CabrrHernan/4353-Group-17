@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './Profile.css';
 import default_image from './default_profilepic.png';
 import DatePicker from 'react-multi-date-picker';
-import 'react-multi-date-picker/styles/layouts/prime.css';
+import "react-multi-date-picker/styles/layouts/prime.css"
 import {format} from 'date-fns'; 
 import axios from 'axios';
 
@@ -18,7 +18,7 @@ function Profile({authState}){
         userName: "name",
         fullName: 'null',
         email:'null',
-        address1: 'null',
+        address: 'null',
         city: 'null',
         state: 'null',
         zip: 'null',
@@ -85,8 +85,15 @@ function Profile({authState}){
         });
     }
 
-    const states = ['TX', 'CA', 'NY', 'FL'];
-    const skillsOptions = ['run','jump','climb','swim'];
+    const states = [
+      'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
+      'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 
+      'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 
+      'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 
+      'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+    ];
+    
+    const skillsOptions = ['Communication','Leadership','Technology','Management'];
     return (
         <div className="widget">
             <div className='profile'>
@@ -102,7 +109,7 @@ function Profile({authState}){
                 type="text"
                 name="userName"
                 maxLength="50"
-                value={userProfile.userName || 'Null'}
+                value={userProfile.userName}
                 onChange={handleChange}
                 disabled= {true}
                 />
@@ -112,7 +119,7 @@ function Profile({authState}){
                 type="text"
                 name="fullName"
                 maxLength="50"
-                value={userProfile.fullName || 'Null'}
+                value={userProfile.fullName}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
@@ -122,17 +129,17 @@ function Profile({authState}){
                 type="text"
                 name="email"
                 maxLength="50"
-                value={userProfile.email || 'Null'}
+                value={userProfile.email}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
         
-                <label>Address 1</label>
+                <label>Address</label>
                 <input
                 type="text"
-                name="address1"
+                name="address"
                 maxLength="100"
-                value={userProfile.address1 || 'Null'}
+                value={userProfile.address}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
@@ -143,13 +150,13 @@ function Profile({authState}){
                 type="text"
                 name="city"
                 maxLength="100"
-                value={userProfile.city || 'Null'}
+                value={userProfile.city}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
         
                 <label>State</label>
-                <select name="state" value={userProfile.state || 'Null'} onChange={handleChange} disabled={!isEditing}>
+                <select name="state" value={userProfile.state} onChange={handleChange} disabled={!isEditing}>
                 {states.map((state, index) => (
                     <option key={index} value={state}>
                     {state}
@@ -163,13 +170,13 @@ function Profile({authState}){
                 name="zip"
                 maxLength="9"
                 minLength="5"
-                value={userProfile.zip || 'Null'}
+                value={userProfile.zip}
                 onChange={handleChange}
                 disabled={!isEditing}
                 />
 
                 <label>Skills</label>
-                <select name="skills" multiple value={userProfile.skills || 'Null'} onChange = {handleMultiSelectChange} disabled={!isEditing}>
+                <select name="skills" multiple value={userProfile.skills} onChange = {handleMultiSelectChange} disabled={!isEditing}>
                 {skillsOptions.map((skill, index) => (
                     <option key={index} value={skill}>
                     {skill}
@@ -180,14 +187,16 @@ function Profile({authState}){
                 <label>Preferences</label>
                 <textarea name="preferences" value={userProfile.preferences} onChange = {handleChange} disabled={!isEditing} />
         
-                <label>Availability</label>
+                <label >Availability</label>
                 {isEditing ? (
-                  <DatePicker
-                    name="availability"
-                    multiple
-                    value={userProfile.availability || 'Null'}
-                    onChange={changeDate}
-                  />
+
+                    <DatePicker
+                      class = "date-picker"
+                      name="availability"
+                      multiple
+                      value={userProfile.availability}
+                      onChange={changeDate}
+                    />
                 ) : (
                   userProfile.availability === 'null' ? (
                     <p>No availability selected</p>
@@ -199,6 +208,7 @@ function Profile({authState}){
                     </ul>
                   )
                 )}
+             
 
                 
                 

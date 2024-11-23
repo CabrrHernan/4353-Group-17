@@ -506,7 +506,7 @@ def get_profile():
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT username, email, location, skills, preferences, availability
+            SELECT username, fullname, email, address, city, state, zip, skills, preferences, availability
             FROM users
             WHERE username = %s
         """, (user,))
@@ -520,11 +520,15 @@ def get_profile():
         if user:
             profile = {
                 'userName': userVals[0],
-                'email': userVals[1],
-                'location': userVals[2],
-                'skills': userVals[3],
-                'preferences': userVals[4],
-                'availability': userVals[5],
+                'fullName':userVals[1],
+                'email': userVals[2],
+                'address': userVals[3],
+                'city': userVals[4],
+                'state': userVals[5],
+                'zip': userVals[6],
+                'skills': userVals[7],
+                'preferences': userVals[8],
+                'availability': userVals[9],
             }
 
             return jsonify(profile), 200
