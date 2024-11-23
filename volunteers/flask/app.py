@@ -62,25 +62,11 @@ SECRET_KEY = 'your_secret_key'
 def home():
     return "Welcome to the API"
 
-volunteers = []
-users = []
 
-
-
-volunteers = [
-    {'id': 1, 'name': 'John Doe', 'profile': 'Programming'},
-    {'id': 2, 'name': 'Jane Smith', 'profile': 'Project Management'}
-]
 
 @app.route('/api/volunteers', methods=['GET'])
 def get_volunteers():
     return jsonify(volunteers),200
-messages= [
-        { 'id': 1, 'title': 'Message 1', 'time': 'just now', 'content': 'Message content 1' , 'read': 0},
-        { 'id': 2, 'title': 'Message 2', 'time': '2 minutes ago', 'content': 'Message content 2', 'read': 1},
-        { 'id': 3, 'title': 'Message 3', 'time': '5 minutes ago', 'content': 'Message content 3', 'read': 1 },
-        { 'id': 4, 'title': 'Message 4', 'time': '10 minutes ago', 'content': 'Message content 4', 'read': 0 }
-    ]
 
 @app.route('/api/users', methods=['GET'])
 def get_users():
