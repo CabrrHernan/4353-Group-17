@@ -88,10 +88,10 @@ def get_users():
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, username, email, location, skills, preferences FROM users")
+        cursor.execute("SELECT id, username, email, skills, preferences FROM users")
         users = cursor.fetchall()  
         
-        users_list = [{'id': u[0], 'username': u[1], 'email': u[2], 'location': u[3], 'skills': u[4], 'preferences': u[5]} for u in users]
+        users_list = [{'id': u[0], 'username': u[1], 'email': u[2], 'skills': u[3], 'preferences': u[4]} for u in users]
         return jsonify(users_list), 200
     except Exception as e:
         print("Error fetching users:", e)
