@@ -64,10 +64,6 @@ def home():
 
 
 
-@app.route('/api/volunteers', methods=['GET'])
-def get_volunteers():
-    return jsonify(volunteers),200
-
 @app.route('/api/users', methods=['GET'])
 def get_users():
     global users  
@@ -431,14 +427,15 @@ def user_events():
 
 @app.route('/api/get_profile', methods=['GET'])
 def get_profile():
-    user = request.args['user']
+    user = request.args.get('user')  # Adjust to 'user' or 'user_id' as needed
     
     if not user:
-        print('No user ID')
+        logging.warning('No user ID provided')
         return jsonify({"message": "User ID is required"}), 400
 
     conn = get_connection()
     if not conn:
+        logging.error("Database connection failed")
         return jsonify({"message": "Database connection failed"}), 500
 
     try:
@@ -448,36 +445,34 @@ def get_profile():
             FROM users
             WHERE username = %s
         """, (user,))
-        user = cursor.fetchone()
-        userVals = list()
-        for val in user:
-            if val is None:
-                userVals.append('null')
-            else:
-                userVals.append(val)
-        if user:
-            profile = {
-                'userName': userVals[0],
-                'fullName':userVals[1],
-                'email': userVals[2],
-                'address': userVals[3],
-                'city': userVals[4],
-                'state': userVals[5],
-                'zip': userVals[6],
-                'skills': userVals[7],
-                'preferences': userVals[8],
-                'availability': userVals[9],
-            }
+        user_data = cursor.fetchone()
 
+        if user_data:
+            profile = {
+                'userName': user_data[0] or None,
+                'fullName': user_data[1] or None,
+                'email': user_data[2] or None,
+                'address': user_data[3] or None,
+                'city': user_data[4] or None,
+                'state': user_data[5] or None,
+                'zip': user_data[6] or None,
+                'skills': user_data[7] or None,
+                'preferences': user_data[8] or None,
+                'availability': user_data[9] or None,
+            }
             return jsonify(profile), 200
         else:
+            logging.info('User not found: %s', user)
             return jsonify({"message": "User not found"}), 404
+
     except Exception as e:
-        print("Error fetching user profile:", e)
+        logging.error("Error fetching user profile: %s", str(e))
         return jsonify({"message": "Error fetching user profile"}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 def validate_profile(profile):
