@@ -64,6 +64,10 @@ def home():
 
 
 
+@app.route('/api/volunteers', methods=['GET'])
+def get_volunteers():
+    return jsonify(volunteers),200
+
 @app.route('/api/users', methods=['GET'])
 def get_users():
     global users  
@@ -72,7 +76,7 @@ def get_users():
     try:
         cursor.execute("SELECT id, username, email, skills, preferences FROM users")
         users = cursor.fetchall()  
-        
+
         users_list = [{'id': u[0], 'username': u[1], 'email': u[2], 'skills': u[3], 'preferences': u[4]} for u in users]
         return jsonify(users_list), 200
     except Exception as e:
@@ -119,10 +123,10 @@ def match_user():
             INSERT INTO event_matches (user_id, event_id, status)
             VALUES (%s, %s, 'pending') RETURNING id
         """, (user_id, manual_event_id))
-        
+
         match_id = cursor.fetchone()[0]
         conn.commit()
-        
+
         return jsonify({"message": "Volunteer matched successfully!", "match_id": match_id}), 200
     except Exception as e:
         conn.rollback()
@@ -189,13 +193,13 @@ def create_event():
         'required_skills': (None, "Required skills are mandatory"),
         'capacity': (None, "Capacity is required"),
     }
-    
+
     for field, (length, message) in required_fields.items():
         validation_response = validate_field(data, field, length, message)
         if validation_response:
             return validation_response
 
-   
+
 
     required_skills = data['required_skills']
 
@@ -281,7 +285,7 @@ def login():
 
         if user_record is None:
             return jsonify({"message": "Invalid credentials"}), 401
-        
+
         stored_password = user_record['password'].tobytes()
 
         if not bcrypt.checkpw(password.encode('utf-8'), stored_password):
@@ -344,10 +348,10 @@ def read_message():
         cursor = conn.cursor()
         sql = "UPDATE notifications SET is_read = %s WHERE id = %s"
         cursor.execute(sql, (True, message_id))
-        
+
         if cursor.rowcount == 0:
             return jsonify({"message": "No message found with the given ID."}), 404
-        
+
         conn.commit()
         return jsonify({"message": "Message marked as read successfully."}), 200
     except Exception as e:
@@ -371,7 +375,7 @@ def get_messages():
                     JOIN notifications n ON u.id = n.user_id
                     WHERE u.username = %s""", (user,)
         )
-        
+
         msg = cur.fetchone()
         messages = list()
         while(msg):
@@ -405,7 +409,7 @@ def user_events():
             WHERE u.username = %s""", (user,))
         events = list()
         event = cur.fetchone()
-  
+
         while(event):
             eventObj = {
                 'id' :event[0], 'title' : event[1], 'content' : event[2], 'date' : event[4], 'status': event[6]
@@ -422,20 +426,19 @@ def user_events():
     finally:
         cur.close()
         conn.close()
-    
+
 
 
 @app.route('/api/get_profile', methods=['GET'])
 def get_profile():
-    user = request.args.get('user')  # Adjust to 'user' or 'user_id' as needed
-    
+    user = request.args['user']
+
     if not user:
-        logging.warning('No user ID provided')
+        print('No user ID')
         return jsonify({"message": "User ID is required"}), 400
 
     conn = get_connection()
     if not conn:
-        logging.error("Database connection failed")
         return jsonify({"message": "Database connection failed"}), 500
 
     try:
@@ -445,34 +448,36 @@ def get_profile():
             FROM users
             WHERE username = %s
         """, (user,))
-        user_data = cursor.fetchone()
-
-        if user_data:
+        user = cursor.fetchone()
+        userVals = list()
+        for val in user:
+            if val is None:
+                userVals.append('null')
+            else:
+                userVals.append(val)
+        if user:
             profile = {
-                'userName': user_data[0] or None,
-                'fullName': user_data[1] or None,
-                'email': user_data[2] or None,
-                'address': user_data[3] or None,
-                'city': user_data[4] or None,
-                'state': user_data[5] or None,
-                'zip': user_data[6] or None,
-                'skills': user_data[7] or None,
-                'preferences': user_data[8] or None,
-                'availability': user_data[9] or None,
+                'userName': userVals[0],
+                'fullName':userVals[1],
+                'email': userVals[2],
+                'address': userVals[3],
+                'city': userVals[4],
+                'state': userVals[5],
+                'zip': userVals[6],
+                'skills': userVals[7],
+                'preferences': userVals[8],
+                'availability': userVals[9],
             }
+
             return jsonify(profile), 200
         else:
-            logging.info('User not found: %s', user)
             return jsonify({"message": "User not found"}), 404
-
     except Exception as e:
-        logging.error("Error fetching user profile: %s", str(e))
+        print("Error fetching user profile:", e)
         return jsonify({"message": "Error fetching user profile"}), 500
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        cursor.close()
+        conn.close()
 
 
 def validate_profile(profile):
@@ -505,7 +510,7 @@ def update_profile():
     if validation_error:
         return jsonify({"message": validation_error}), 400
     '''
-    
+
     if not user:
         return jsonify({"message": "No user found"}), 400
 
@@ -522,10 +527,10 @@ def update_profile():
             return jsonify({"message": "No valid fields to update."}), 400
         set_clause = ", ".join(["{} = %s".format(field) for field in update_fields.keys()])
         values = list(update_fields.values()) + [user] 
-        
+
 
         sql = "UPDATE users SET " + set_clause + " WHERE userName = %s"
-       
+
         print(sql)
         print(values)
         cursor.execute(sql,values)
